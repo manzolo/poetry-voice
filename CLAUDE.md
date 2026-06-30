@@ -6,6 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Poetry Voice turns poems (TXT/MD/PDF) into expressive audiobooks. It is **not** plain TTS: an LLM first analyzes the poem to produce a prosodic annotation (pauses, emphasis, emotion, speed per line), and that annotation drives a configurable TTS engine, followed by FFmpeg post-processing. Accessibility (low-vision users) is a primary design goal. Default language is Italian; the README and most user-facing strings are in Italian.
 
+## Project rules
+
+- **Changelog**: every time you commit & push, update `CHANGELOG.md` under the `## [Unreleased]` section, grouping entries into `Aggiunto` / `Modificato` / `Corretto` (Added/Changed/Fixed, in Italian). Keep the changelog entry in the same commit as the change it describes. On a version bump, move `[Unreleased]` under the new version heading with the date (`YYYY-MM-DD`). Format: Keep a Changelog + SemVer.
+
 ## Commands
 
 Everything normally runs inside the Docker container (which also runs Ollama and needs an NVIDIA GPU). The `Makefile` is the canonical interface.
