@@ -1,0 +1,31 @@
+llm:
+  provider: ollama
+  model: qwen3:8b
+  base_url: http://localhost:11434
+  temperature: 0.2
+  language: it
+  reading_tone: caldo
+  reading_speed: slow
+  reading_instructions: ""
+
+tts:
+  engine: piper
+  speaker: it_IT-paola-medium
+  language: it
+  device: cuda
+  model_path: /models/piper/it_IT-paola-medium.onnx
+  sample_rate: 24000
+  speed: slow
+  sentence_silence: 0.8
+
+audio:
+  format: mp3
+  bitrate: 192k
+  lufs: -18
+  noise_reduction: false
+  fade_ms: 120
+  light_compression: true
+
+pipeline:
+  output_dir: outputs
+  keep_intermediates: false

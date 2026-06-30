@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Poetry Voice</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #080808;
+        --panel: #171717;
+        --text: #f7f7f7;
+        --muted: #cfcfcf;
+        --accent: #ffd54a;
+        --border: #5f5f5f;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: Atkinson Hyperlegible, Verdana, Arial, sans-serif;
+        font-size: 20px;
+        line-height: 1.6;
+      }
+      main {
+        width: min(1100px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 32px 0 56px;
+      }
+      h1, h2 { line-height: 1.15; }
+      h1 { font-size: clamp(2rem, 5vw, 4rem); margin: 0 0 24px; }
+      h2 { font-size: 1.6rem; margin-top: 40px; }
+      form, .result {
+        border: 2px solid var(--border);
+        background: var(--panel);
+        border-radius: 8px;
+        padding: 24px;
+      }
+      label { display: block; font-weight: 700; margin: 18px 0 6px; }
+      input, select, button {
+        width: 100%;
+        min-height: 52px;
+        border-radius: 6px;
+        border: 2px solid var(--border);
+        background: #050505;
+        color: var(--text);
+        font-size: 1rem;
+        padding: 10px 12px;
+      }
+      textarea {
+        width: 100%;
+        min-height: 180px;
+        resize: vertical;
+        border-radius: 6px;
+        border: 2px solid var(--border);
+        background: #050505;
+        color: var(--text);
+        font: inherit;
+        padding: 10px 12px;
+      }
+      button {
+        margin-top: 24px;
+        background: var(--accent);
+        color: #050505;
+        border-color: var(--accent);
+        font-weight: 800;
+        cursor: pointer;
+      }
+      button[disabled] {
+        cursor: wait;
+        opacity: 0.78;
+      }
+      a { color: var(--accent); }
+      :focus-visible { outline: 4px solid var(--accent); outline-offset: 3px; }
+      .status {
+        min-height: 32px;
+        margin-top: 16px;
+        color: var(--accent);
+        font-weight: 800;
+      }
+      .status[hidden] { display: none; }
+      .log-list {
+        margin: 12px 0 0;
+        padding-left: 24px;
+        color: var(--text);
+        font-weight: 500;
+      }
+      .error {
+        color: #ff8a80;
+        font-weight: 800;
+      }
+      .line {
+        border-top: 1px solid var(--border);
+        padding: 14px 0;
+      }
+      .meta { color: var(--muted); font-size: 0.95rem; }
+      .line-grid {
+        display: grid;
+        grid-template-columns: minmax(280px, 1fr) 140px 190px auto;
+        gap: 14px;
+        align-items: end;
+      }
+      .line-grid textarea { min-height: 72px; }
+      .line-actions {
+        display: flex;
+        gap: 8px;
+      }
+      .line-actions button {
+        width: 52px;
+        min-height: 52px;
+        margin-top: 0;
+        padding: 0;
+      }
+      .secondary-button {
+        background: #050505;
+        color: var(--accent);
+      }
+      @media (max-width: 820px) {
+        .line-grid {
+          grid-template-columns: 1fr;
+        }
+        .line-actions button {
+          width: 100%;
+        }
+      }
+      audio { width: 100%; margin-top: 12px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Poetry Voice</h1>
+      <form id="convert-form" action="/convert" method="post" enctype="multipart/form-data" aria-label="Converti poesia">
+        <label for="file">File poesia TXT, Markdown o PDF</label>
+        <input id="file" name="file" type="file" accept=".txt,.md,.markdown,.pdf">
+
+        <label for="tts_engine">Motore TTS</label>
+        <select id="tts_engine" name="tts_engine">
+          <option value="piper" {% if not form_data or form_data.tts_engine == "piper" %}selected{% endif %}>Piper</option>
+          <option value="kokoro" {% if form_data and form_data.tts_engine == "kokoro" %}selected{% endif %}>Kokoro</option>
+          <option value="dia" {% if form_data and form_data.tts_engine == "dia" %}selected{% endif %}>Dia</option>
+          <option value="xtts" {% if form_data and form_data.tts_engine == "xtts" %}selected{% endif %}>XTTS v2</option>
+        </select>
+
+        <label for="tts_speaker">Voce</label>
+        <select id="tts_speaker" name="tts_speaker">
+          <option value="it_IT-paola-medium" data-engine="piper" {% if not form_data or form_data.tts_speaker == "it_IT-paola-medium" %}selected{% endif %}>Paola - italiano, qualità media</option>
+          <option value="it_IT-riccardo-x_low" data-engine="piper" {% if form_data and form_data.tts_speaker == "it_IT-riccardo-x_low" %}selected{% endif %}>Riccardo - italiano, molto leggero</option>
+          <option value="" data-engine="none">Nessuna voce compatibile registrata</option>
+        </select>
+
+        <label for="language">Lingua</label>
+        <select id="language" name="language">
+          <option value="it" {% if not form_data or form_data.language == "it" %}selected{% endif %}>Italiano</option>
+          <option value="en" {% if form_data and form_data.language == "en" %}selected{% endif %}>Inglese</option>
+          <option value="fr" {% if form_data and form_data.language == "fr" %}selected{% endif %}>Francese</option>
+          <option value="es" {% if form_data and form_data.language == "es" %}selected{% endif %}>Spagnolo</option>
+          <option value="de" {% if form_data and form_data.language == "de" %}selected{% endif %}>Tedesco</option>
+        </select>
+
+        <label for="reading_tone">Tono</label>
+        <select id="reading_tone" name="reading_tone">
+          <option value="caldo" {% if not form_data or form_data.reading_tone == "caldo" %}selected{% endif %}>Caldo</option>
+          <option value="neutro" {% if form_data and form_data.reading_tone == "neutro" %}selected{% endif %}>Neutro</option>
+          <option value="sereno" {% if form_data and form_data.reading_tone == "sereno" %}selected{% endif %}>Sereno</option>
+          <option value="malinconico" {% if form_data and form_data.reading_tone == "malinconico" %}selected{% endif %}>Malinconico</option>
+          <option value="solenne" {% if form_data and form_data.reading_tone == "solenne" %}selected{% endif %}>Solenne</option>
+          <option value="delicato" {% if form_data and form_data.reading_tone == "delicato" %}selected{% endif %}>Delicato</option>
+        </select>
+
+        <label for="reading_speed">Velocità</label>
+        <select id="reading_speed" name="reading_speed">
+          <option value="slow" {% if not form_data or form_data.reading_speed == "slow" %}selected{% endif %}>Lenta</option>
+          <option value="very_slow" {% if form_data and form_data.reading_speed == "very_slow" %}selected{% endif %}>Molto lenta</option>
+          <option value="medium" {% if form_data and form_data.reading_speed == "medium" %}selected{% endif %}>Media</option>
+          <option value="fast" {% if form_data and form_data.reading_speed == "fast" %}selected{% endif %}>Veloce</option>
+        </select>
+
+        <label for="llm_provider">Provider LLM</label>
+        <select id="llm_provider" name="llm_provider">
+          <option value="ollama" {% if not form_data or form_data.llm_provider == "ollama" %}selected{% endif %}>Ollama</option>
+          <option value="openai" {% if form_data and form_data.llm_provider == "openai" %}selected{% endif %}>OpenAI compatibile</option>
+          <option value="generic" {% if form_data and form_data.llm_provider == "generic" %}selected{% endif %}>API generica</option>
+        </select>
+
+        <label for="llm_model">Modello LLM</label>
+        <input id="llm_model" name="llm_model" value="{{ form_data.llm_model if form_data else 'qwen3:8b' }}" autocomplete="off">
+
+        <textarea id="source_text" name="source_text" hidden>{{ form_data.source_text if form_data else '' }}</textarea>
+        <input id="reading_instructions" name="reading_instructions" type="hidden" value="">
+
+        <button id="submit-button" type="submit">Genera audiolibro</button>
+        <p id="conversion-status" class="status" role="status" aria-live="polite" hidden>
+          Avvio elaborazione...
+        </p>
+        <ol id="conversion-log" class="log-list" aria-live="polite" hidden></ol>
+      </form>
+
+      {% if error %}
+      <p class="error" role="alert">{{ error }}</p>
+      {% endif %}
+
+      {% if annotation %}
+      <section id="result-section" class="result" aria-labelledby="preview-title">
+        <h2 id="preview-title">{{ annotation.title }}</h2>
+        <p class="meta">Tono: {{ annotation.mood }}. Stile voce: {{ annotation.voice_style }}.</p>
+        {% if audio_url %}
+        <audio controls src="{{ audio_url }}" aria-label="Anteprima audio generato"></audio>
+        <p><a href="{{ audio_url }}" download>Download audio</a></p>
+        {% endif %}
+        <h2>Anteprima annotata</h2>
+        {% for line in annotation.lines %}
+        <article class="line editable-line" data-line-index="{{ loop.index0 }}">
+          <div class="line-grid">
+            <div>
+              <label for="line_text_{{ loop.index0 }}">Verso {{ loop.index }}</label>
+              <textarea id="line_text_{{ loop.index0 }}" class="line-text">{{ line.text }}</textarea>
+            </div>
+            <div>
+              <label for="line_pause_{{ loop.index0 }}">Pausa dopo</label>
+              <input id="line_pause_{{ loop.index0 }}" class="line-pause" type="number" min="0" max="8" step="0.1" value="{{ '%.1f'|format(line.pause_after) }}">
+            </div>
+            <div>
+              <label for="line_emotion_{{ loop.index0 }}">Emozione</label>
+              <select id="line_emotion_{{ loop.index0 }}" class="line-emotion">
+                <option value="contemplative" {% if line.emotion == "contemplative" %}selected{% endif %}>Contemplativa</option>
+                <option value="calm" {% if line.emotion == "calm" %}selected{% endif %}>Calma</option>
+                <option value="melancholic" {% if line.emotion == "melancholic" or line.emotion == "melancolico" %}selected{% endif %}>Malinconica</option>
+                <option value="tender" {% if line.emotion == "tender" %}selected{% endif %}>Tenera</option>
+                <option value="solemn" {% if line.emotion == "solemn" %}selected{% endif %}>Solenne</option>
+                <option value="wonder" {% if line.emotion == "wonder" %}selected{% endif %}>Meraviglia</option>
+                <option value="tense" {% if line.emotion == "tense" %}selected{% endif %}>Tesa</option>
+              </select>
+            </div>
+            <div class="line-actions" aria-label="Azioni verso">
+              <button class="secondary-button add-line-button" type="button" title="Aggiungi verso sotto">+</button>
+              <button class="secondary-button delete-line-button" type="button" title="Elimina verso">×</button>
+            </div>
+          </div>
+          <p class="meta">Volume {{ "%.1f"|format(line.volume) }}, velocità {{ line.speed or annotation.overall_speed }}.</p>
+        </article>
+        {% endfor %}
+        <button id="resynthesize-button" class="secondary-button" type="button">Rigenera da anteprima modificata</button>
+      </section>
+      <script id="annotation-json" type="application/json">{{ annotation.model_dump_json() | safe }}</script>
+      {% endif %}
+    </main>
+    <script>
+      const form = document.querySelector("#convert-form");
+      const button = document.querySelector("#submit-button");
+      const status = document.querySelector("#conversion-status");
+      const logList = document.querySelector("#conversion-log");
+      const resultSection = document.querySelector("#result-section");
+      const fileInput = document.querySelector("#file");
+      const sourceText = document.querySelector("#source_text");
+      const engineSelect = document.querySelector("#tts_engine");
+      const speakerSelect = document.querySelector("#tts_speaker");
+      const resynthesizeButton = document.querySelector("#resynthesize-button");
+
+      fileInput?.addEventListener("change", () => {
+        if (fileInput.files?.length && sourceText?.value.trim()) {
+          sourceText.value = "";
+        }
+      });
+
+      engineSelect?.addEventListener("change", updateVoiceOptions);
+      resynthesizeButton?.addEventListener("click", resynthesizeFromPreview);
+      document.addEventListener("click", (event) => {
+        if (event.target.matches(".delete-line-button")) {
+          deleteLine(event.target.closest(".editable-line"));
+        }
+        if (event.target.matches(".add-line-button")) {
+          addLineAfter(event.target.closest(".editable-line"));
+        }
+      });
+      updateVoiceOptions();
+
+      form?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const previousAudio = resultSection?.querySelector("audio");
+        previousAudio?.pause();
+        if (previousAudio) {
+          previousAudio.currentTime = 0;
+        }
+        if (resultSection) {
+          resultSection.hidden = true;
+        }
+        button.disabled = true;
+        button.textContent = "Elaborazione...";
+        status.hidden = false;
+        status.classList.remove("error");
+        status.textContent = "Elaborazione avviata";
+        logList.hidden = false;
+        logList.replaceChildren();
+
+        if (speakerSelect.disabled || !speakerSelect.value) {
+          status.textContent = "Nessuna voce compatibile per il motore selezionato.";
+          status.classList.add("error");
+          button.disabled = false;
+          button.textContent = "Genera audiolibro";
+          return;
+        }
+
+        try {
+          const response = await fetch(form.action, {
+            method: "POST",
+            body: new FormData(form),
+          });
+          if (!response.ok) {
+            throw new Error("Avvio conversione non riuscito");
+          }
+          const payload = await response.json();
+          pollJob(payload.job_id);
+        } catch (error) {
+          status.textContent = error.message;
+          status.classList.add("error");
+          button.disabled = false;
+          button.textContent = "Genera audiolibro";
+        }
+      });
+
+      async function pollJob(jobId) {
+        try {
+          const response = await fetch(`/jobs/${jobId}`);
+          const job = await response.json();
+          renderMessages(job.messages || []);
+
+          if (job.status === "completed") {
+            status.textContent = "Elaborazione completata";
+            window.location.href = job.result_url;
+            return;
+          }
+
+          if (job.status === "failed") {
+            status.textContent = job.error || "Elaborazione non riuscita";
+            status.classList.add("error");
+            button.disabled = false;
+            if (resynthesizeButton) {
+              resynthesizeButton.disabled = false;
+            }
+            button.textContent = "Genera audiolibro";
+            return;
+          }
+
+          status.textContent = latestMessage(job.messages) || "Elaborazione in corso";
+          setTimeout(() => pollJob(jobId), 1200);
+        } catch (error) {
+          status.textContent = error.message;
+          status.classList.add("error");
+          button.disabled = false;
+          if (resynthesizeButton) {
+            resynthesizeButton.disabled = false;
+          }
+          button.textContent = "Genera audiolibro";
+        }
+      }
+
+      function renderMessages(messages) {
+        logList.replaceChildren();
+        for (const message of messages) {
+          const item = document.createElement("li");
+          item.textContent = message;
+          logList.appendChild(item);
+        }
+      }
+
+      function latestMessage(messages) {
+        return messages && messages.length ? messages[messages.length - 1] : null;
+      }
+
+      function updateVoiceOptions() {
+        const engine = engineSelect.value;
+        let firstVisible = null;
+        for (const option of speakerSelect.options) {
+          const visible = option.dataset.engine === engine;
+          option.hidden = !visible;
+          option.disabled = !visible;
+          if (visible && firstVisible === null) {
+            firstVisible = option;
+          }
+        }
+
+        const selected = speakerSelect.selectedOptions[0];
+        if ((!selected || selected.disabled) && firstVisible) {
+          firstVisible.selected = true;
+        }
+
+        if (firstVisible === null) {
+          const emptyOption = [...speakerSelect.options].find((option) => option.dataset.engine === "none");
+          if (emptyOption) {
+            emptyOption.hidden = false;
+            emptyOption.disabled = false;
+            emptyOption.selected = true;
+          }
+          speakerSelect.disabled = true;
+          return;
+        }
+
+        for (const option of speakerSelect.options) {
+          if (option.dataset.engine === "none") {
+            option.hidden = true;
+            option.disabled = true;
+          }
+        }
+        speakerSelect.disabled = false;
+      }
+
+      async function resynthesizeFromPreview() {
+        const annotationScript = document.querySelector("#annotation-json");
+        if (!annotationScript) {
+          return;
+        }
+        const annotation = JSON.parse(annotationScript.textContent);
+        annotation.lines = [...document.querySelectorAll(".editable-line")]
+          .map((row) => {
+            const index = Number(row.dataset.lineIndex);
+            const baseLine = annotation.lines[index] || defaultLine();
+            return {
+              ...baseLine,
+              text: row.querySelector(".line-text").value,
+              pause_after: Number(row.querySelector(".line-pause").value),
+              emotion: row.querySelector(".line-emotion").value,
+            };
+          })
+          .filter((line) => line.text.trim());
+
+        if (resultSection) {
+          resultSection.hidden = true;
+        }
+        button.disabled = true;
+        resynthesizeButton.disabled = true;
+        status.hidden = false;
+        status.classList.remove("error");
+        status.textContent = "Rigenerazione da anteprima modificata";
+        logList.hidden = false;
+        logList.replaceChildren();
+
+        try {
+          const response = await fetch("/synthesize-annotation", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+              annotation,
+              tts_engine: engineSelect.value,
+              tts_speaker: speakerSelect.value,
+              language: document.querySelector("#language").value,
+              reading_tone: document.querySelector("#reading_tone").value,
+              reading_speed: document.querySelector("#reading_speed").value,
+            }),
+          });
+          if (!response.ok) {
+            const payload = await response.json();
+            throw new Error(payload.error || "Rigenerazione non riuscita");
+          }
+          const payload = await response.json();
+          pollJob(payload.job_id);
+        } catch (error) {
+          status.textContent = error.message;
+          status.classList.add("error");
+          button.disabled = false;
+          resynthesizeButton.disabled = false;
+        }
+      }
+
+      function deleteLine(row) {
+        if (!row) {
+          return;
+        }
+        row.remove();
+        renumberLines();
+      }
+
+      function addLineAfter(row) {
+        if (!row) {
+          return;
+        }
+        const clone = row.cloneNode(true);
+        clone.dataset.lineIndex = "-1";
+        clone.querySelector(".line-text").value = "";
+        clone.querySelector(".line-pause").value = "0.8";
+        clone.querySelector(".line-emotion").value = "calm";
+        row.insertAdjacentElement("afterend", clone);
+        renumberLines();
+        clone.querySelector(".line-text").focus();
+      }
+
+      function renumberLines() {
+        document.querySelectorAll(".editable-line").forEach((row, index) => {
+          const label = row.querySelector("label");
+          if (label) {
+            label.textContent = `Verso ${index + 1}`;
+          }
+        });
+      }
+
+      function defaultLine() {
+        return {
+          text: "",
+          pause_before: 0,
+          pause_after: 0.8,
+          breath_after: false,
+          emphasis: [],
+          emotion: "calm",
+          volume: 1,
+          speed: document.querySelector("#reading_speed").value,
+          pitch: 1,
+          metadata: {},
+        };
+      }
+    </script>
+  </body>
+</html>

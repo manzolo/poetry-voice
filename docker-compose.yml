@@ -1,0 +1,33 @@
+services:
+  poetry-voice:
+    build:
+      context: .
+      args:
+        INSTALL_HEAVY_TTS: "1"
+    image: poetry-voice:latest
+    ports:
+      - "8000:8000"
+      - "11434:11434"
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+      - ./outputs:/app/outputs
+      - ./uploads:/app/uploads
+      - ./models:/models
+      - ./ollama:/root/.ollama
+    environment:
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+      HF_HOME: /models/huggingface
+      TORCH_HOME: /models/torch
+      OLLAMA_MODEL: qwen3:8b
+      POETRYVOICE_PULL_MODEL: "1"
+      PIPER_MODEL_PATH: /models/piper/it_IT-paola-medium.onnx
+      PIPER_MODEL_URL: https://huggingface.co/rhasspy/piper-voices/resolve/main/it/it_IT/paola/medium/it_IT-paola-medium.onnx
+      PIPER_CONFIG_URL: https://huggingface.co/rhasspy/piper-voices/resolve/main/it/it_IT/paola/medium/it_IT-paola-medium.onnx.json
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

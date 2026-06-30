@@ -1,0 +1,65 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "poetry-voice"
+version = "0.1.0"
+description = "Expressive audiobook generation for poetry, designed with accessibility in mind."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "Poetry Voice contributors" }]
+dependencies = [
+  "fastapi>=0.111",
+  "httpx>=0.27",
+  "jinja2>=3.1",
+  "markdown-it-py>=3.0",
+  "pydantic>=2.7",
+  "pydantic-settings>=2.3",
+  "pypdf>=4.2",
+  "python-multipart>=0.0.9",
+  "pyyaml>=6.0",
+  "rich>=13.7",
+  "structlog>=24.1",
+  "typer>=0.12",
+  "uvicorn[standard]>=0.30",
+]
+
+[project.optional-dependencies]
+tts = [
+  "kokoro>=0.9.0",
+  "piper-tts>=1.2.0",
+  "TTS>=0.22.0",
+  "soundfile>=0.12",
+  "numpy>=1.26",
+]
+dev = [
+  "black>=24.4",
+  "pytest>=8.2",
+  "pytest-asyncio>=0.23",
+  "ruff>=0.5",
+]
+
+[project.scripts]
+poetryvoice = "poetry_voice.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["poetry_voice"]
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "ANN"]
+ignore = ["ANN101", "ANN102"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+pythonpath = ["."]

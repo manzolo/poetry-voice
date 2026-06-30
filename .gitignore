@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Configurazione locale (usa config.example.yaml come modello)
+config.yaml
+
+# Dati di runtime e cache dei modelli
+outputs/
+uploads/
+models/
+ollama/
+
+# OS / editor
+.DS_Store
+*.swp

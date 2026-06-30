@@ -1,0 +1,65 @@
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Literal
+
+import yaml
+from pydantic import BaseModel, Field
+
+
+class LLMConfig(BaseModel):
+    provider: Literal["ollama", "openai", "generic"] = "ollama"
+    model: str = "qwen3:8b"
+    base_url: str = "http://localhost:11434"
+    api_key: str | None = None
+    timeout_seconds: float = 120.0
+    temperature: float = Field(default=0.2, ge=0.0, le=2.0)
+    language: str = "it"
+    reading_tone: str = "caldo"
+    reading_speed: Literal["very_slow", "slow", "medium", "fast"] = "slow"
+    reading_instructions: str = ""
+
+
+class TTSConfig(BaseModel):
+    engine: Literal["kokoro", "dia", "xtts", "piper"] = "piper"
+    speaker: str = "it_IT-paola-medium"
+    language: str = "it"
+    device: Literal["auto", "cuda", "cpu"] = "cuda"
+    model_path: str | None = "/models/piper/it_IT-paola-medium.onnx"
+    sample_rate: int = 24000
+    speed: Literal["very_slow", "slow", "medium", "fast"] = "slow"
+    sentence_silence: float = Field(default=0.8, ge=0.0, le=5.0)
+
+
+class AudioConfig(BaseModel):
+    format: Literal["wav", "flac", "mp3", "ogg"] = "mp3"
+    bitrate: str = "192k"
+    lufs: float = -18.0
+    noise_reduction: bool = False
+    fade_ms: int = 120
+    light_compression: bool = True
+
+
+class PipelineConfig(BaseModel):
+    output_dir: Path = Path("outputs")
+    keep_intermediates: bool = False
+
+
+class AppConfig(BaseModel):
+    llm: LLMConfig = Field(default_factory=LLMConfig)
+    tts: TTSConfig = Field(default_factory=TTSConfig)
+    audio: AudioConfig = Field(default_factory=AudioConfig)
+    pipeline: PipelineConfig = Field(default_factory=PipelineConfig)
+
+
+def load_config(path: Path | str | None = None) -> AppConfig:
+    if path is None:
+        default = Path("config.yaml")
+        if not default.exists():
+            return AppConfig()
+        path = default
+    config_path = Path(path)
+    if not config_path.exists():
+        return AppConfig()
+    data = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+    return AppConfig.model_validate(data)
