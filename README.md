@@ -219,6 +219,12 @@ Le voci sono legate al motore. `Paola` e `Riccardo` sono voci Piper: la UI le
 mostra solo quando il motore selezionato e `Piper`, e il backend rifiuta
 combinazioni incompatibili invece di usare silenziosamente il fallback.
 
+Per voci piu naturali c'e il motore **Kokoro** (neurale) con voci italiane
+`Sara` e `Nicola`, che rispetta le pause per verso. Richiede lo stack neurale:
+usalo via Docker (consigliato) oppure in locale con Python ≤ 3.13 ed `espeak-ng`
+(i wheel di spacy/kokoro non esistono ancora per Python 3.14). Tutte le pause
+per verso sono rispettate sia con Piper sia con Kokoro.
+
 | Voce | Chiave | Note |
 | --- | --- | --- |
 | Paola | `it_IT-paola-medium` | qualita media, default consigliato |

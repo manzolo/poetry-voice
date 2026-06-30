@@ -27,12 +27,23 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-tts = [
+# Motori TTS neurali separati: cosi un motore fragile (es. coqui TTS/xtts) non
+# blocca l'installazione di un altro (es. kokoro). "tts" e l'unione di tutti.
+kokoro = [
   "kokoro>=0.9.0",
-  "piper-tts>=1.2.0",
+  "soundfile>=0.12",
+  "numpy>=1.26",
+]
+xtts = [
   "TTS>=0.22.0",
   "soundfile>=0.12",
   "numpy>=1.26",
+]
+piper = [
+  "piper-tts>=1.2.0",
+]
+tts = [
+  "poetry-voice[kokoro,xtts,piper]",
 ]
 dev = [
   "black>=24.4",

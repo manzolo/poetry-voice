@@ -35,8 +35,11 @@ COPY scripts/start-container.sh /usr/local/bin/start-container.sh
 
 RUN pip install --upgrade pip \
     && pip install "." \
-    && (pip install piper-tts || true) \
-    && if [ "$INSTALL_HEAVY_TTS" = "1" ]; then pip install ".[tts]" || true; fi \
+    && (pip install ".[piper]" || true) \
+    && if [ "$INSTALL_HEAVY_TTS" = "1" ]; then \
+         (pip install ".[kokoro]" || true); \
+         (pip install ".[xtts]" || true); \
+       fi \
     && chmod +x /usr/local/bin/start-container.sh
 
 EXPOSE 8000 11434

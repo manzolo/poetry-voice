@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from poetry_voice.tts.kokoro_voices import KOKORO_VOICES
 from poetry_voice.tts.piper_voices import PIPER_VOICES
 
 
@@ -14,14 +15,22 @@ class VoiceOption:
 
 
 def _build_voice_options() -> dict[str, VoiceOption]:
-    # Sorgente unica: il catalogo delle voci Piper. Per aggiungere una voce
-    # basta registrarla in piper_voices.py; UI e validazione la prendono da qui.
+    # Sorgente unica: i cataloghi per motore. Per aggiungere una voce basta
+    # registrarla nel file del suo motore (piper_voices.py / kokoro_voices.py);
+    # UI e validazione la prendono da qui.
     options: dict[str, VoiceOption] = {}
     for voice in PIPER_VOICES.values():
         options[voice.key] = VoiceOption(
             key=voice.key,
             label=voice.label,
             engine="piper",
+            language=voice.language,
+        )
+    for voice in KOKORO_VOICES.values():
+        options[voice.key] = VoiceOption(
+            key=voice.key,
+            label=voice.label,
+            engine="kokoro",
             language=voice.language,
         )
     return options
