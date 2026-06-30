@@ -80,6 +80,41 @@
         font-weight: 800;
       }
       .status[hidden] { display: none; }
+      .progress {
+        margin-top: 14px;
+        height: 16px;
+        width: 100%;
+        background: #050505;
+        border: 2px solid var(--border);
+        border-radius: 999px;
+        overflow: hidden;
+      }
+      .progress[hidden] { display: none; }
+      .progress-bar {
+        position: relative;
+        height: 100%;
+        width: 0;
+        background: var(--accent);
+        border-radius: inherit;
+        overflow: hidden;
+        transition: width 0.45s ease;
+      }
+      .progress-bar::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: linear-gradient(115deg, transparent 0 35%, rgba(255, 255, 255, 0.45) 50%, transparent 65% 100%);
+        background-size: 220% 100%;
+        animation: progress-sheen 1.4s linear infinite;
+      }
+      @keyframes progress-sheen {
+        from { background-position: 220% 0; }
+        to { background-position: -220% 0; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .progress-bar { transition: none; }
+        .progress-bar::after { animation: none; }
+      }
       .log-list {
         margin: 12px 0 0;
         padding-left: 24px;
@@ -91,26 +126,47 @@
         font-weight: 800;
       }
       .line {
-        border-top: 1px solid var(--border);
-        padding: 14px 0;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: #101010;
+        padding: 18px 20px 16px;
+        margin-top: 18px;
       }
       .meta { color: var(--muted); font-size: 0.95rem; }
+      .line .meta { margin: 14px 0 0; }
       .line-grid {
         display: grid;
-        grid-template-columns: minmax(280px, 1fr) 140px 190px auto;
-        gap: 14px;
-        align-items: end;
+        grid-template-columns: minmax(240px, 1fr) 120px 200px auto;
+        gap: 16px;
+        align-items: start;
       }
-      .line-grid textarea { min-height: 72px; }
-      .line-actions {
-        display: flex;
+      .line-grid > div { min-width: 0; }
+      .line-grid label,
+      .line-grid .field-label {
+        display: block;
+        margin: 0 0 8px;
+        font-weight: 700;
+        font-size: 1rem;
+      }
+      .line-grid textarea {
+        min-height: 88px;
+        margin: 0;
+      }
+      .line-grid input,
+      .line-grid select { margin: 0; }
+      .line-actions { display: flex; flex-direction: column; }
+      .line-actions-buttons {
+        display: grid;
+        grid-template-columns: repeat(2, 56px);
         gap: 8px;
       }
       .line-actions button {
-        width: 52px;
+        width: 56px;
         min-height: 52px;
         margin-top: 0;
         padding: 0;
+        font-size: 1.4rem;
+        line-height: 1;
       }
       .secondary-button {
         background: #050505;
@@ -120,8 +176,11 @@
         .line-grid {
           grid-template-columns: 1fr;
         }
-        .line-actions button {
-          width: 100%;
+        .line-actions-buttons {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .line-actions-buttons button {
+          width: auto;
         }
       }
       audio { width: 100%; margin-top: 12px; }
@@ -193,6 +252,9 @@
         <p id="conversion-status" class="status" role="status" aria-live="polite" hidden>
           Avvio elaborazione...
         </p>
+        <div id="conversion-progress" class="progress" role="progressbar" aria-label="Avanzamento elaborazione" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden>
+          <div class="progress-bar"></div>
+        </div>
         <ol id="conversion-log" class="log-list" aria-live="polite" hidden></ol>
       </form>
 
@@ -232,9 +294,14 @@
                 <option value="tense" {% if line.emotion == "tense" %}selected{% endif %}>Tesa</option>
               </select>
             </div>
-            <div class="line-actions" aria-label="Azioni verso">
-              <button class="secondary-button add-line-button" type="button" title="Aggiungi verso sotto">+</button>
-              <button class="secondary-button delete-line-button" type="button" title="Elimina verso">×</button>
+            <div class="line-actions" role="group" aria-label="Azioni verso">
+              <span class="field-label" aria-hidden="true">Azioni</span>
+              <div class="line-actions-buttons">
+                <button class="secondary-button move-up-button" type="button" aria-label="Sposta il verso su" title="Sposta su">&uarr;</button>
+                <button class="secondary-button move-down-button" type="button" aria-label="Sposta il verso giù" title="Sposta giù">&darr;</button>
+                <button class="secondary-button add-line-button" type="button" aria-label="Aggiungi un verso sotto" title="Aggiungi verso sotto">+</button>
+                <button class="secondary-button delete-line-button" type="button" aria-label="Elimina il verso" title="Elimina verso">&times;</button>
+              </div>
             </div>
           </div>
           <p class="meta">Volume {{ "%.1f"|format(line.volume) }}, velocità {{ line.speed or annotation.overall_speed }}.</p>
@@ -256,6 +323,40 @@
       const engineSelect = document.querySelector("#tts_engine");
       const speakerSelect = document.querySelector("#tts_speaker");
       const resynthesizeButton = document.querySelector("#resynthesize-button");
+      const progress = document.querySelector("#conversion-progress");
+      const progressBar = progress?.querySelector(".progress-bar");
+
+      function setProgress(value) {
+        if (!progress || !progressBar) {
+          return;
+        }
+        const clamped = Math.max(0, Math.min(100, Math.round(value)));
+        progressBar.style.width = `${clamped}%`;
+        progress.setAttribute("aria-valuenow", String(clamped));
+      }
+
+      function startProgress() {
+        if (!progress) {
+          return;
+        }
+        progress.hidden = false;
+        setProgress(6);
+      }
+
+      function hideProgress() {
+        if (!progress) {
+          return;
+        }
+        progress.hidden = true;
+        setProgress(0);
+      }
+
+      function updateProgressFromMessages(messages) {
+        // La pipeline emette circa 7 step; avanza con i messaggi e si ferma
+        // sotto al 100% finché il job non è davvero completato.
+        const count = messages ? messages.length : 0;
+        setProgress(Math.min(94, 8 + count * 13));
+      }
 
       fileInput?.addEventListener("change", () => {
         if (fileInput.files?.length && sourceText?.value.trim()) {
@@ -271,6 +372,14 @@
         }
         if (event.target.matches(".add-line-button")) {
           addLineAfter(event.target.closest(".editable-line"));
+        }
+        if (event.target.matches(".move-up-button")) {
+          moveLine(event.target.closest(".editable-line"), "up");
+          event.target.focus();
+        }
+        if (event.target.matches(".move-down-button")) {
+          moveLine(event.target.closest(".editable-line"), "down");
+          event.target.focus();
         }
       });
       updateVoiceOptions();
@@ -292,10 +401,12 @@
         status.textContent = "Elaborazione avviata";
         logList.hidden = false;
         logList.replaceChildren();
+        startProgress();
 
         if (speakerSelect.disabled || !speakerSelect.value) {
           status.textContent = "Nessuna voce compatibile per il motore selezionato.";
           status.classList.add("error");
+          hideProgress();
           button.disabled = false;
           button.textContent = "Genera audiolibro";
           return;
@@ -314,6 +425,7 @@
         } catch (error) {
           status.textContent = error.message;
           status.classList.add("error");
+          hideProgress();
           button.disabled = false;
           button.textContent = "Genera audiolibro";
         }
@@ -324,9 +436,11 @@
           const response = await fetch(`/jobs/${jobId}`);
           const job = await response.json();
           renderMessages(job.messages || []);
+          updateProgressFromMessages(job.messages);
 
           if (job.status === "completed") {
             status.textContent = "Elaborazione completata";
+            setProgress(100);
             window.location.href = job.result_url;
             return;
           }
@@ -334,6 +448,7 @@
           if (job.status === "failed") {
             status.textContent = job.error || "Elaborazione non riuscita";
             status.classList.add("error");
+            hideProgress();
             button.disabled = false;
             if (resynthesizeButton) {
               resynthesizeButton.disabled = false;
@@ -347,6 +462,7 @@
         } catch (error) {
           status.textContent = error.message;
           status.classList.add("error");
+          hideProgress();
           button.disabled = false;
           if (resynthesizeButton) {
             resynthesizeButton.disabled = false;
@@ -434,6 +550,7 @@
         status.textContent = "Rigenerazione da anteprima modificata";
         logList.hidden = false;
         logList.replaceChildren();
+        startProgress();
 
         try {
           const response = await fetch("/synthesize-annotation", {
@@ -457,6 +574,7 @@
         } catch (error) {
           status.textContent = error.message;
           status.classList.add("error");
+          hideProgress();
           button.disabled = false;
           resynthesizeButton.disabled = false;
         }
@@ -467,6 +585,24 @@
           return;
         }
         row.remove();
+        renumberLines();
+      }
+
+      function moveLine(row, direction) {
+        if (!row) {
+          return;
+        }
+        if (direction === "up") {
+          const previous = row.previousElementSibling;
+          if (previous && previous.classList.contains("editable-line")) {
+            row.parentNode.insertBefore(row, previous);
+          }
+        } else {
+          const next = row.nextElementSibling;
+          if (next && next.classList.contains("editable-line")) {
+            row.parentNode.insertBefore(next, row);
+          }
+        }
         renumberLines();
       }
 
