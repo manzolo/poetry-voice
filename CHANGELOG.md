@@ -10,10 +10,11 @@ e il progetto segue il [versionamento semantico](https://semver.org/lang/it/).
 ### Aggiunto
 - Clonazione voce con **XTTS v2**: campo `speaker_wav` nella config, opzione CLI
   `--speaker-wav` e upload del campione nella UI (salvato in
-  `uploads/voci-clonate/`); usa il fork `coqui-tts`. Nota: lo stack
-  coqui-tts/transformers ha ancora un conflitto di versione, quindi la sintesi
-  XTTS reale non e ancora verificata (vedi BACKLOG). Kokoro resta l'opzione
-  neurale verificata.
+  `uploads/voci-clonate/`); usa il fork `coqui-tts[codec]` con `transformers`
+  pinnato a 4.x. L'import dello stack e verificato; la sintesi XTTS reale non e
+  ancora confermata (errore a runtime nella chiamata di sintesi, da debuggare
+  preferibilmente su GPU — vedi BACKLOG). Kokoro resta l'opzione neurale
+  verificata end-to-end.
 - Motore TTS **Kokoro** (neurale) con voci italiane Sara (`if_sara`) e Nicola
   (`im_nicola`); rispetta le pause per verso ed espone le voci nella UI. Richiede
   lo stack neurale (Docker, oppure Python ≤ 3.13 + espeak-ng): i wheel di

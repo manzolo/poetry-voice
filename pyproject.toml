@@ -35,7 +35,11 @@ kokoro = [
   "numpy>=1.26",
 ]
 xtts = [
-  "coqui-tts>=0.24",
+  # coqui-tts[codec] porta torchcodec (richiesto da torch >= 2.9 per l'IO audio);
+  # transformers e pinnato a 4.x perche coqui-tts usa isin_mps_friendly, rimosso
+  # in transformers 5.x.
+  "coqui-tts[codec]>=0.24",
+  "transformers>=4.40,<5",
   "torch",
   "torchaudio",
   "soundfile>=0.12",
