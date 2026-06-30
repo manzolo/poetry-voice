@@ -11,7 +11,7 @@ from fastapi.templating import Jinja2Templates
 
 from poetry_voice.config import load_config
 from poetry_voice.models import PoemAnnotation
-from poetry_voice.tts.voices import validate_voice_for_engine
+from poetry_voice.tts.voices import available_voices, validate_voice_for_engine
 from poetry_voice.ui.jobs import create_annotation_job, create_job, get_job
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -28,7 +28,7 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request) -> HTMLResponse:
-    return templates.TemplateResponse(request, "index.html")
+    return templates.TemplateResponse(request, "index.html", {"voices": available_voices()})
 
 
 @app.post("/convert")
@@ -147,7 +147,10 @@ async def result(request: Request, job_id: str) -> HTMLResponse:
         return templates.TemplateResponse(
             request,
             "index.html",
-            {"error": "Risultato non disponibile o job non completato."},
+            {
+                "error": "Risultato non disponibile o job non completato.",
+                "voices": available_voices(),
+            },
         )
     return templates.TemplateResponse(
         request,
@@ -157,5 +160,6 @@ async def result(request: Request, job_id: str) -> HTMLResponse:
             "audio_url": job.audio_url,
             "source_text": job.source_text,
             "form_data": {**job.form_data, "source_text": job.source_text},
+            "voices": available_voices(),
         },
     )

@@ -20,6 +20,8 @@ e il progetto segue il [versionamento semantico](https://semver.org/lang/it/).
 - `BACKLOG.md` e `LICENSE` (MIT).
 
 ### Modificato
+- Le voci mostrate nella UI e la validazione derivano da un unico catalogo
+  (`piper_voices.py`): per aggiungere una voce basta editare un solo file.
 - Anteprima annotata allineata e resa a "card".
 - Action della CI aggiornati a Node 24 (checkout@v7, setup-python@v6, cache@v6).
 

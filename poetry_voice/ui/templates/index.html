@@ -203,8 +203,9 @@
 
         <label for="tts_speaker">Voce</label>
         <select id="tts_speaker" name="tts_speaker">
-          <option value="it_IT-paola-medium" data-engine="piper" {% if not form_data or form_data.tts_speaker == "it_IT-paola-medium" %}selected{% endif %}>Paola - italiano, qualità media</option>
-          <option value="it_IT-riccardo-x_low" data-engine="piper" {% if form_data and form_data.tts_speaker == "it_IT-riccardo-x_low" %}selected{% endif %}>Riccardo - italiano, molto leggero</option>
+          {% for v in voices %}
+          <option value="{{ v.key }}" data-engine="{{ v.engine }}" {% if (form_data and form_data.tts_speaker == v.key) or (not form_data and loop.first) %}selected{% endif %}>{{ v.label }}</option>
+          {% endfor %}
           <option value="" data-engine="none">Nessuna voce compatibile registrata</option>
         </select>
 
