@@ -165,4 +165,20 @@ Se un backend opzionale non e disponibile per l'ambiente Python/CUDA corrente,
 il container parte comunque e Poetry Voice usa `espeak-ng` come voce di
 ripiego. I log indicano quando un motore reale non parte e si usa il ripiego.
 
+## Voci neurali (Kokoro)
+
+Per una voce piu naturale, dopo `make build` seleziona nella UI il motore
+**Kokoro** e una voce italiana (**Sara** o **Nicola**). Funziona anche su CPU e
+rispetta le pause per verso. Da CLI:
+
+```bash
+make convert INPUT=uploads/poesia.txt ARGS="--voice kokoro --speaker if_sara --language it"
+```
+
+Se hai costruito l'immagine prima di questa funzione, ricostruiscila
+(`make build`) per installare Kokoro.
+
+Il motore **XTTS v2** (clonazione voce da un campione) e cablato ma la sua
+sintesi non e ancora confermata: vedi `BACKLOG.md`.
+
 Per la versione senza Docker e senza GPU, vedi [standalone.md](standalone.md).
