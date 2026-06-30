@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Literal
 
@@ -54,7 +55,10 @@ class AppConfig(BaseModel):
 
 def load_config(path: Path | str | None = None) -> AppConfig:
     if path is None:
-        default = Path("config.yaml")
+        # POETRYVOICE_CONFIG permette di scegliere un file di config diverso
+        # senza passare argomenti (usato dai target "make local-*").
+        env_path = os.environ.get("POETRYVOICE_CONFIG")
+        default = Path(env_path) if env_path else Path("config.yaml")
         if not default.exists():
             return AppConfig()
         path = default

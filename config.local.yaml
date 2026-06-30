@@ -1,0 +1,23 @@
+# Configurazione per l'uso locale senza Docker e senza GPU.
+# Usata automaticamente dai target "make local-*" (via POETRYVOICE_CONFIG).
+# I dati finiscono sotto local-data/, di proprieta dell'utente, cosi non si
+# scontrano con le cartelle create dai container Docker (di proprieta di root).
+llm:
+  provider: ollama
+  model: qwen3:8b
+  base_url: http://localhost:11434
+  language: it
+  reading_tone: caldo
+  reading_speed: slow
+
+tts:
+  engine: piper
+  speaker: it_IT-paola-medium
+  device: cpu
+  speed: slow
+
+audio:
+  format: mp3
+
+pipeline:
+  output_dir: local-data/outputs

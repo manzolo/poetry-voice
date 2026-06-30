@@ -17,6 +17,7 @@ outputs/
 uploads/
 models/
 ollama/
+local-data/
 
 # OS / editor
 .DS_Store

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import shutil
 from pathlib import Path
 
@@ -14,10 +15,14 @@ from poetry_voice.tts.voices import validate_voice_for_engine
 from poetry_voice.ui.jobs import create_annotation_job, create_job, get_job
 
 BASE_DIR = Path(__file__).resolve().parent
-UPLOAD_DIR = Path("uploads")
+# Le cartelle dati sono configurabili: in Docker restano "uploads"/"outputs",
+# in locale i target "make local-*" le spostano sotto local-data/ (di proprieta
+# dell'utente, cosi non si scontrano con i file root creati dai container).
+UPLOAD_DIR = Path(os.environ.get("POETRYVOICE_UPLOAD_DIR", "uploads"))
+OUTPUT_DIR = load_config().pipeline.output_dir
 
 app = FastAPI(title="Poetry Voice", description="Lettura espressiva di poesie")
-app.mount("/outputs", StaticFiles(directory="outputs", check_dir=False), name="outputs")
+app.mount("/outputs", StaticFiles(directory=str(OUTPUT_DIR), check_dir=False), name="outputs")
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 

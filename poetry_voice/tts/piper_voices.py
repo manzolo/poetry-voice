@@ -1,7 +1,13 @@
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from pathlib import Path
+
+# Cartella in cui scaricare/cercare i modelli Piper. In Docker resta
+# /models/piper (volume montato); in locale puoi puntarla altrove, ad
+# esempio ./models/piper, esportando PIPER_MODELS_DIR.
+PIPER_MODELS_DIR = Path(os.environ.get("PIPER_MODELS_DIR", "/models/piper"))
 
 
 @dataclass(frozen=True, slots=True)
@@ -19,7 +25,7 @@ PIPER_VOICES: dict[str, PiperVoice] = {
         key="it_IT-paola-medium",
         label="Paola - italiano, qualita media",
         language="it",
-        model_path=Path("/models/piper/it_IT-paola-medium.onnx"),
+        model_path=PIPER_MODELS_DIR / "it_IT-paola-medium.onnx",
         model_url=(
             "https://huggingface.co/rhasspy/piper-voices/resolve/main/"
             "it/it_IT/paola/medium/it_IT-paola-medium.onnx"
@@ -33,7 +39,7 @@ PIPER_VOICES: dict[str, PiperVoice] = {
         key="it_IT-riccardo-x_low",
         label="Riccardo - italiano, molto leggero",
         language="it",
-        model_path=Path("/models/piper/it_IT-riccardo-x_low.onnx"),
+        model_path=PIPER_MODELS_DIR / "it_IT-riccardo-x_low.onnx",
         model_url=(
             "https://huggingface.co/rhasspy/piper-voices/resolve/main/"
             "it/it_IT/riccardo/x_low/it_IT-riccardo-x_low.onnx"
