@@ -26,13 +26,13 @@ def annotation_to_tts_text(annotation: PoemAnnotation) -> str:
         text = line.text.strip()
         if not text:
             continue
-        chunks.append(_ensure_soft_punctuation(text))
+        chunks.append(ensure_soft_punctuation(text))
         if line.breath_after or line.pause_after >= 1.0:
             chunks.append("")
     return "\n".join(chunks).strip()
 
 
-def _ensure_soft_punctuation(text: str) -> str:
+def ensure_soft_punctuation(text: str) -> str:
     if text.endswith((".", ",", ";", ":", "!", "?", "…")):
         return text
     return f"{text},"

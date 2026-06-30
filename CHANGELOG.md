@@ -24,6 +24,10 @@ e il progetto segue il [versionamento semantico](https://semver.org/lang/it/).
 - Action della CI aggiornati a Node 24 (checkout@v7, setup-python@v6, cache@v6).
 
 ### Corretto
+- Piper ora rispetta `pause_before`/`pause_after` per ogni verso: la sintesi
+  avviene verso per verso e i silenzi vengono inseriti con durata esatta. Prima
+  il valore "pausa dopo" dell'anteprima veniva ignorato (Piper usava solo un
+  silenzio globale).
 - CI verde: lint (ruff/black) puliti e test resi offline e deterministici.
 
 ## [0.1.0] - 2026-06-30
