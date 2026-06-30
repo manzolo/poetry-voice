@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Awaitable, Callable
 from pathlib import Path
-from typing import Awaitable, Callable
 
 import structlog
 
@@ -29,8 +29,13 @@ class PoetryVoicePipeline:
         await _publish(progress, "Lettura del file e riconoscimento formato")
         document = parse_document(input_path)
         logger.info("document_parsed", path=str(document.path), format=document.source_format)
-        await _publish(progress, f"File letto: formato {document.source_format}, {len(document.text)} caratteri")
-        await _publish(progress, f"Analisi LLM con {self.config.llm.provider} / {self.config.llm.model}")
+        await _publish(
+            progress,
+            f"File letto: formato {document.source_format}, {len(document.text)} caratteri",
+        )
+        await _publish(
+            progress, f"Analisi LLM con {self.config.llm.provider} / {self.config.llm.model}"
+        )
         annotation = await self.llm.analyze(document.text)
         annotation.language = self.config.llm.language
         annotation.mood = self.config.llm.reading_tone
@@ -55,7 +60,9 @@ class PoetryVoicePipeline:
             f"Sintesi vocale con {self.config.tts.engine} / {self.config.tts.speaker}",
         )
         await self.tts.synthesize(annotation, wav_path)
-        await _publish(progress, f"Post-processing audio FFmpeg in formato {self.config.audio.format}")
+        await _publish(
+            progress, f"Post-processing audio FFmpeg in formato {self.config.audio.format}"
+        )
         await post_process_audio(wav_path, final_path, self.config.audio)
         intermediates = [wav_path] if self.config.pipeline.keep_intermediates else []
         if not self.config.pipeline.keep_intermediates:
@@ -85,7 +92,9 @@ class PoetryVoicePipeline:
             f"Sintesi vocale da anteprima modificata con {self.config.tts.engine} / {self.config.tts.speaker}",
         )
         await self.tts.synthesize(annotation, wav_path)
-        await _publish(progress, f"Post-processing audio FFmpeg in formato {self.config.audio.format}")
+        await _publish(
+            progress, f"Post-processing audio FFmpeg in formato {self.config.audio.format}"
+        )
         await post_process_audio(wav_path, final_path, self.config.audio)
         if not self.config.pipeline.keep_intermediates:
             wav_path.unlink(missing_ok=True)

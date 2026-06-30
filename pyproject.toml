@@ -57,7 +57,9 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "SIM", "ANN"]
-ignore = ["ANN101", "ANN102"]
+# E501 (lunghezza riga) e gestita da black; B008 e l'idioma standard di FastAPI
+# per i default Depends/File/Form negli argomenti.
+ignore = ["B008", "E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

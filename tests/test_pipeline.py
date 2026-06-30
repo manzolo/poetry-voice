@@ -13,6 +13,10 @@ async def test_pipeline_generates_audio(tmp_path: Path) -> None:
     config = AppConfig()
     config.pipeline.output_dir = tmp_path / "outputs"
     config.audio.format = "wav"
+    # Motore le cui dipendenze non sono installate: la pipeline ricade sul TTS
+    # di fallback, così il test resta offline e deterministico (nessun download
+    # di modelli, nessuna GPU, nessun binario esterno richiesto).
+    config.tts.engine = "kokoro"
     result = await PoetryVoicePipeline(config).run(poem)
     assert result.audio_path.exists()
     assert result.annotation.lines

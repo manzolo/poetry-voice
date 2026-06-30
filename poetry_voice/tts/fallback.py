@@ -24,9 +24,7 @@ class FallbackToneTTSProvider(TTSProvider):
             return await self._synthesize_with_espeak(annotation, output_wav)
         return self._synthesize_tone(annotation, output_wav)
 
-    async def _synthesize_with_espeak(
-        self, annotation: PoemAnnotation, output_wav: Path
-    ) -> Path:
+    async def _synthesize_with_espeak(self, annotation: PoemAnnotation, output_wav: Path) -> Path:
         output_wav.parent.mkdir(parents=True, exist_ok=True)
         text_path = output_wav.with_suffix(".fallback.txt")
         script = annotation_to_tts_text(annotation)

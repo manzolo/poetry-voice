@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-test:
+    name: Lint e test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Installa l'app (core + dev)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Ruff
+        run: ruff check .
+      - name: Black
+        run: black --check .
+      - name: Pytest
+        run: pytest -q
+
+  standalone-smoke:
+    name: Standalone su CPU (Piper, senza GPU)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Dipendenze di sistema
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg espeak-ng
+      - name: Installa l'app e Piper
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+          pip install piper-tts || echo "piper-tts non installabile: verra usato il fallback espeak-ng"
+      - name: Cache della voce Piper
+        uses: actions/cache@v4
+        with:
+          path: models/piper
+          key: piper-voice-it_IT-paola-medium-v1
+      - name: Conversione di prova su CPU (senza GPU, senza Ollama)
+        env:
+          PIPER_MODELS_DIR: ${{ github.workspace }}/models/piper
+        run: |
+          mkdir -p uploads outputs models/piper
+          printf "Sempre caro mi fu quest'ermo colle,\ne questa siepe, che da tanta parte\ndell'ultimo orizzonte il guardo esclude.\n" > uploads/sample.txt
+          poetryvoice uploads/sample.txt --format wav
+          test -s outputs/sample.wav
+          echo "OK: audiolibro WAV generato su CPU"

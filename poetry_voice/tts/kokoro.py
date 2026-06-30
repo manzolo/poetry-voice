@@ -20,8 +20,8 @@ class KokoroTTSProvider(TTSProvider):
 
     async def synthesize(self, annotation: PoemAnnotation, output_wav: Path) -> Path:
         try:
-            from kokoro import KPipeline  # type: ignore[import-not-found]
             import soundfile as sf  # type: ignore[import-not-found]
+            from kokoro import KPipeline  # type: ignore[import-not-found]
 
             pipeline = KPipeline(lang_code=self.config.language[:1])
             script = annotation_to_tts_text(annotation)

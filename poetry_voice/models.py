@@ -6,7 +6,6 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
-
 Speed = Literal["very_slow", "slow", "medium", "fast"]
 VoiceStyle = Literal["warm", "neutral", "bright", "deep", "soft"]
 

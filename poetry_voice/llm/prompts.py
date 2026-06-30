@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 SYSTEM_PROMPT = """Sei un direttore della lettura poetica.
 Analizza una poesia per produrre indicazioni prosodiche utili a una sintesi vocale naturale.
 Lo stile deve essere caldo, elegante, rilassante e umano, senza recitazione eccessivamente teatrale.

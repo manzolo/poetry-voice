@@ -8,7 +8,6 @@ from poetry_voice.parser.markdown import MarkdownParser
 from poetry_voice.parser.pdf import PdfParser
 from poetry_voice.parser.text import TextParser
 
-
 PARSERS: tuple[DocumentParser, ...] = (TextParser(), MarkdownParser(), PdfParser())
 
 
