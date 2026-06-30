@@ -209,6 +209,12 @@
           <option value="" data-engine="none">Nessuna voce compatibile registrata</option>
         </select>
 
+        <div id="clone-field" hidden>
+          <label for="speaker_sample">Campione voce per clonazione (XTTS) - audio WAV, MP3, FLAC o OGG</label>
+          <input id="speaker_sample" name="speaker_sample" type="file" accept="audio/*,.wav,.mp3,.flac,.ogg">
+          <p class="meta">Carica 6-15 secondi di voce pulita: XTTS la clona per leggere la poesia.</p>
+        </div>
+
         <label for="language">Lingua</label>
         <select id="language" name="language">
           <option value="it" {% if not form_data or form_data.language == "it" %}selected{% endif %}>Italiano</option>
@@ -324,7 +330,19 @@
       const engineSelect = document.querySelector("#tts_engine");
       const speakerSelect = document.querySelector("#tts_speaker");
       const resynthesizeButton = document.querySelector("#resynthesize-button");
+      const cloneField = document.querySelector("#clone-field");
+      const speakerSample = document.querySelector("#speaker_sample");
       const progress = document.querySelector("#conversion-progress");
+
+      function engineUsesCatalogVoice(engine) {
+        return engine !== "xtts" && engine !== "dia";
+      }
+
+      function updateCloneField() {
+        if (cloneField) {
+          cloneField.hidden = engineSelect.value !== "xtts";
+        }
+      }
       const progressBar = progress?.querySelector(".progress-bar");
 
       function setProgress(value) {
@@ -365,7 +383,10 @@
         }
       });
 
-      engineSelect?.addEventListener("change", updateVoiceOptions);
+      engineSelect?.addEventListener("change", () => {
+        updateVoiceOptions();
+        updateCloneField();
+      });
       resynthesizeButton?.addEventListener("click", resynthesizeFromPreview);
       document.addEventListener("click", (event) => {
         if (event.target.matches(".delete-line-button")) {
@@ -384,6 +405,7 @@
         }
       });
       updateVoiceOptions();
+      updateCloneField();
 
       form?.addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -404,8 +426,17 @@
         logList.replaceChildren();
         startProgress();
 
-        if (speakerSelect.disabled || !speakerSelect.value) {
-          status.textContent = "Nessuna voce compatibile per il motore selezionato.";
+        if (engineUsesCatalogVoice(engineSelect.value)) {
+          if (speakerSelect.disabled || !speakerSelect.value) {
+            status.textContent = "Nessuna voce compatibile per il motore selezionato.";
+            status.classList.add("error");
+            hideProgress();
+            button.disabled = false;
+            button.textContent = "Genera audiolibro";
+            return;
+          }
+        } else if (engineSelect.value === "xtts" && !speakerSample?.files?.length) {
+          status.textContent = "Per XTTS carica un campione voce da clonare.";
           status.classList.add("error");
           hideProgress();
           button.disabled = false;

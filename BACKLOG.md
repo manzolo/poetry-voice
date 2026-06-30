@@ -25,6 +25,11 @@ condivisa per non perdere le cose.
 - [ ] Verificare la barra di avanzamento e il riordino versi con sola tastiera.
 
 ### Qualita audio / TTS
+- [ ] XTTS v2: risolvere il conflitto di dipendenze coqui-tts/transformers
+      (errore `cannot import 'isin_mps_friendly' from transformers.pytorch_utils`,
+      serve probabilmente un pin di `transformers`) e verificare la
+      sintesi/clonazione reale, preferibilmente su GPU. Wiring gia presente
+      (engine `xtts`, `speaker_wav`, CLI `--speaker-wav`, upload nella UI).
 - [ ] Preset vocali migliori per l'italiano.
 - [ ] Implementazione reale dell'adapter Dia.
 - [ ] Stitching audio per verso con inserimento di silenzi naturali.

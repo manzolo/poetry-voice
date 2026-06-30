@@ -22,6 +22,7 @@ def _run_conversion(
     config: Path | None,
     voice: str | None,
     speaker: str | None,
+    speaker_wav: str | None,
     emotion: str,
     speed: str | None,
     language: str | None,
@@ -35,6 +36,8 @@ def _run_conversion(
         app_config.tts.engine = voice  # type: ignore[assignment]
     if speaker:
         app_config.tts.speaker = speaker
+    if speaker_wav:
+        app_config.tts.speaker_wav = speaker_wav
     validation_error = validate_voice_for_engine(app_config.tts.engine, app_config.tts.speaker)
     if validation_error:
         raise typer.BadParameter(validation_error)
@@ -60,6 +63,7 @@ def convert(
     config: Annotated[Path | None, typer.Option("--config", "-c")] = None,
     voice: Annotated[str | None, typer.Option("--voice")] = None,
     speaker: Annotated[str | None, typer.Option("--speaker")] = None,
+    speaker_wav: Annotated[str | None, typer.Option("--speaker-wav")] = None,
     emotion: Annotated[str, typer.Option("--emotion")] = "auto",
     speed: Annotated[str | None, typer.Option("--speed")] = None,
     language: Annotated[str | None, typer.Option("--language")] = None,
@@ -72,6 +76,7 @@ def convert(
         config,
         voice,
         speaker,
+        speaker_wav,
         emotion,
         speed,
         language,

@@ -35,7 +35,9 @@ kokoro = [
   "numpy>=1.26",
 ]
 xtts = [
-  "TTS>=0.22.0",
+  "coqui-tts>=0.24",
+  "torch",
+  "torchaudio",
   "soundfile>=0.12",
   "numpy>=1.26",
 ]

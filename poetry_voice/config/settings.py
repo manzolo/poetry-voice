@@ -24,6 +24,9 @@ class LLMConfig(BaseModel):
 class TTSConfig(BaseModel):
     engine: Literal["kokoro", "dia", "xtts", "piper"] = "piper"
     speaker: str = "it_IT-paola-medium"
+    # Campione audio di riferimento per la clonazione voce (motore xtts).
+    # Se valorizzato e il file esiste, XTTS clona quella voce.
+    speaker_wav: str | None = None
     language: str = "it"
     device: Literal["auto", "cuda", "cpu"] = "cuda"
     model_path: str | None = "/models/piper/it_IT-paola-medium.onnx"

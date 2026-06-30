@@ -43,6 +43,7 @@ async def convert(
     reading_speed: str = Form("slow"),
     llm_provider: str = Form("ollama"),
     llm_model: str = Form("qwen3:8b"),
+    speaker_sample: UploadFile | None = File(None),
 ) -> JSONResponse:
     validation_error = validate_voice_for_engine(tts_engine, tts_speaker)
     if validation_error:
@@ -73,6 +74,14 @@ async def convert(
     config.llm.reading_instructions = reading_instructions
     config.llm.provider = llm_provider  # type: ignore[assignment]
     config.llm.model = llm_model
+    # Clonazione voce per XTTS: salva il campione caricato e puntaci la config.
+    if speaker_sample is not None and speaker_sample.filename:
+        voices_dir = UPLOAD_DIR / "voci-clonate"
+        voices_dir.mkdir(parents=True, exist_ok=True)
+        sample_path = voices_dir / Path(speaker_sample.filename).name
+        with sample_path.open("wb") as handle:
+            shutil.copyfileobj(speaker_sample.file, handle)
+        config.tts.speaker_wav = str(sample_path)
     form_data = {
         "source_text": source_text,
         "reading_instructions": reading_instructions,

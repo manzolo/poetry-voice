@@ -43,7 +43,14 @@ def available_voices() -> list[VoiceOption]:
     return list(VOICE_OPTIONS.values())
 
 
+# Motori che usano una voce dal catalogo. Gli altri (es. xtts, che clona da un
+# campione audio) non richiedono una voce registrata.
+CATALOG_ENGINES = {"piper", "kokoro"}
+
+
 def validate_voice_for_engine(engine: str, speaker: str) -> str | None:
+    if engine not in CATALOG_ENGINES:
+        return None
     option = VOICE_OPTIONS.get(speaker)
     if option is None:
         return f"Voce non registrata: {speaker}"
