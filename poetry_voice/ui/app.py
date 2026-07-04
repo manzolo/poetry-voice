@@ -4,6 +4,7 @@ import os
 import shutil
 from pathlib import Path
 
+import httpx
 from fastapi import FastAPI, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -13,7 +14,7 @@ from poetry_voice.config import load_config
 from poetry_voice.models import PoemAnnotation
 from poetry_voice.tts.voices import available_voices, validate_voice_for_engine
 from poetry_voice.ui.i18n import LANG_COOKIE, resolve_ui_lang, translations
-from poetry_voice.ui.jobs import create_annotation_job, create_job, get_job
+from poetry_voice.ui.jobs import cancel_job, create_annotation_job, create_job, get_job
 
 BASE_DIR = Path(__file__).resolve().parent
 # Le cartelle dati sono configurabili: in Docker restano "uploads"/"outputs",
@@ -125,6 +126,31 @@ async def job_status(request: Request, job_id: str) -> JSONResponse:
             "error": job.error,
         }
     )
+
+
+@app.post("/jobs/{job_id}/cancel")
+async def job_cancel(request: Request, job_id: str) -> JSONResponse:
+    job = cancel_job(job_id)
+    if job is None:
+        message = translations(resolve_ui_lang(request))["error_job_not_found"]
+        return JSONResponse({"error": message}, status_code=404)
+    return JSONResponse({"status": job.status})
+
+
+@app.get("/ollama-models")
+async def ollama_models() -> JSONResponse:
+    """Modelli presenti nell'istanza Ollama configurata (lista vuota se giu')."""
+    config = load_config()
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            response = await client.get(f"{config.llm.base_url.rstrip('/')}/api/tags")
+            response.raise_for_status()
+            models = sorted(
+                {model["name"] for model in response.json().get("models", []) if "name" in model}
+            )
+    except Exception:
+        models = []
+    return JSONResponse({"models": models})
 
 
 @app.post("/synthesize-annotation")

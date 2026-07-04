@@ -14,11 +14,16 @@ _STRINGS: dict[str, dict[str, str]] = {
         "en": "Expressive poetry reading",
     },
     "switcher_label": {"it": "Lingua dell'interfaccia", "en": "Interface language"},
+    "layout_compact": {"it": "Layout compatto", "en": "Compact layout"},
     "form_aria": {"it": "Converti poesia", "en": "Convert poem"},
+    "label_source": {"it": "Sorgente del testo", "en": "Text source"},
+    "source_file": {"it": "Carica un file", "en": "Upload a file"},
+    "source_write": {"it": "Scrivi o incolla il testo", "en": "Write or paste the text"},
     "label_file": {
         "it": "File poesia TXT, Markdown o PDF",
         "en": "Poem file: TXT, Markdown or PDF",
     },
+    "label_text": {"it": "Testo della poesia", "en": "Poem text"},
     "label_engine": {"it": "Motore TTS", "en": "TTS engine"},
     "label_voice": {"it": "Voce", "en": "Voice"},
     "no_voice_option": {
@@ -55,7 +60,12 @@ _STRINGS: dict[str, dict[str, str]] = {
     "llm_openai": {"it": "OpenAI compatibile", "en": "OpenAI compatible"},
     "llm_generic": {"it": "API generica", "en": "Generic API"},
     "label_llm_model": {"it": "Modello LLM", "en": "LLM model"},
+    "model_hint": {
+        "it": "Scrivi un nome oppure scegli un modello già scaricato in Ollama.",
+        "en": "Type a name or pick a model already downloaded in Ollama.",
+    },
     "submit": {"it": "Genera audiolibro", "en": "Generate audiobook"},
+    "stop": {"it": "Ferma elaborazione", "en": "Stop processing"},
     "status_starting": {"it": "Avvio elaborazione...", "en": "Starting processing..."},
     "progress_aria": {"it": "Avanzamento elaborazione", "en": "Processing progress"},
     "meta_tone": {"it": "Tono", "en": "Tone"},
@@ -106,6 +116,12 @@ _STRINGS: dict[str, dict[str, str]] = {
     },
     "js_completed": {"it": "Elaborazione completata", "en": "Processing completed"},
     "js_failed": {"it": "Elaborazione non riuscita", "en": "Processing failed"},
+    "js_no_text": {
+        "it": "Scrivi o incolla il testo della poesia.",
+        "en": "Write or paste the poem text.",
+    },
+    "js_stopping": {"it": "Interruzione in corso...", "en": "Stopping..."},
+    "js_cancelled": {"it": "Elaborazione annullata", "en": "Processing cancelled"},
     "js_in_progress": {"it": "Elaborazione in corso", "en": "Processing"},
     "js_resynthesizing": {
         "it": "Rigenerazione da anteprima modificata",

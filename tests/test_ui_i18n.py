@@ -39,6 +39,53 @@ def test_voices_carry_language_for_client_side_filtering() -> None:
     assert 'data-language="it"' in response.text
 
 
+def test_index_has_new_controls() -> None:
+    client = TestClient(app)
+    text = client.get("/").text
+    assert 'name="source_mode"' in text  # switch upload/testo
+    assert 'id="stop-button"' in text
+    assert 'id="ollama-models"' in text  # datalist modelli
+    assert 'id="layout-toggle"' in text
+
+
+def test_cancel_unknown_job_returns_404() -> None:
+    client = TestClient(app)
+    response = client.post("/jobs/nonexistent/cancel")
+    assert response.status_code == 404
+
+
+def test_ollama_models_endpoint_degrades_to_empty_list() -> None:
+    client = TestClient(app)
+    response = client.get("/ollama-models")
+    assert response.status_code == 200
+    assert isinstance(response.json()["models"], list)
+
+
+def test_job_can_be_cancelled(tmp_path, monkeypatch) -> None:  # noqa: ANN001
+    import poetry_voice.ui.app as app_module
+
+    monkeypatch.setattr(app_module, "UPLOAD_DIR", tmp_path)
+    client = TestClient(app)
+    response = client.post(
+        "/convert",
+        data={
+            "tts_engine": "piper",
+            "tts_speaker": "it_IT-paola-medium",
+            "language": "it",
+            "source_text": "Sempre caro mi fu\nquest'ermo colle.",
+        },
+    )
+    assert response.status_code == 200
+    job_id = response.json()["job_id"]
+    cancel = client.post(f"/jobs/{job_id}/cancel")
+    assert cancel.status_code == 200
+    for _ in range(50):
+        status = client.get(f"/jobs/{job_id}").json()["status"]
+        if status in {"cancelled", "completed", "failed"}:
+            break
+    assert status in {"cancelled", "completed", "failed"}
+
+
 def test_convert_rejects_voice_language_mismatch() -> None:
     client = TestClient(app)
     response = client.post(

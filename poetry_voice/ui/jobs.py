@@ -20,6 +20,7 @@ class ConversionJob:
     source_text: str = ""
     form_data: dict[str, str] = field(default_factory=dict)
     error: str | None = None
+    task: asyncio.Task | None = None
 
 
 JOBS: dict[str, ConversionJob] = {}
@@ -31,7 +32,7 @@ def create_job(
     job = ConversionJob(id=uuid.uuid4().hex, form_data=form_data or {})
     job.messages.append("Job creato")
     JOBS[job.id] = job
-    asyncio.create_task(_run_job(job, input_path, config))
+    job.task = asyncio.create_task(_run_job(job, input_path, config))
     return job
 
 
@@ -41,12 +42,23 @@ def create_annotation_job(
     job = ConversionJob(id=uuid.uuid4().hex, form_data=form_data or {})
     job.messages.append("Job creato da anteprima modificata")
     JOBS[job.id] = job
-    asyncio.create_task(_run_annotation_job(job, annotation, config))
+    job.task = asyncio.create_task(_run_annotation_job(job, annotation, config))
     return job
 
 
 def get_job(job_id: str) -> ConversionJob | None:
     return JOBS.get(job_id)
+
+
+def cancel_job(job_id: str) -> ConversionJob | None:
+    """Chiede l'annullamento del job; lo stato passa a "cancelled" appena il
+    task viene davvero interrotto (il polling lo vede al giro successivo)."""
+    job = JOBS.get(job_id)
+    if job is None:
+        return None
+    if job.status in {"queued", "running"} and job.task is not None:
+        job.task.cancel()
+    return job
 
 
 async def _run_job(job: ConversionJob, input_path: Path, config: AppConfig) -> None:
@@ -62,6 +74,9 @@ async def _run_job(job: ConversionJob, input_path: Path, config: AppConfig) -> N
         job.source_text = result.source_text
         job.status = "completed"
         job.messages.append("Elaborazione completata")
+    except asyncio.CancelledError:
+        job.status = "cancelled"
+        job.messages.append("Elaborazione annullata")
     except Exception as exc:
         job.status = "failed"
         job.error = str(exc)
@@ -85,6 +100,9 @@ async def _run_annotation_job(
         job.source_text = result.source_text
         job.status = "completed"
         job.messages.append("Elaborazione completata")
+    except asyncio.CancelledError:
+        job.status = "cancelled"
+        job.messages.append("Elaborazione annullata")
     except Exception as exc:
         job.status = "failed"
         job.error = str(exc)

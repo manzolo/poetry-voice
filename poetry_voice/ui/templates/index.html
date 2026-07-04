@@ -184,31 +184,128 @@
         }
       }
       audio { width: 100%; margin-top: 12px; }
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 8px;
+      }
       .lang-switcher {
         display: flex;
         gap: 20px;
         justify-content: flex-end;
         font-weight: 700;
-        margin-bottom: 8px;
       }
       .lang-switcher a[aria-current="true"] {
         text-decoration: none;
         color: var(--text);
         border-bottom: 3px solid var(--accent);
       }
+      .toggle-button {
+        width: auto;
+        min-height: 44px;
+        margin: 0;
+        padding: 8px 14px;
+        background: #050505;
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .toggle-button[aria-pressed="true"] {
+        background: var(--accent);
+        color: #050505;
+        border-color: var(--accent);
+      }
+      fieldset.source-toggle {
+        border: 2px solid var(--border);
+        border-radius: 6px;
+        padding: 10px 16px 14px;
+        margin: 18px 0 0;
+      }
+      .source-toggle legend { font-weight: 700; padding: 0 8px; }
+      .radio-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 500;
+        margin: 4px 28px 0 0;
+      }
+      .radio-label input[type="radio"] {
+        width: 26px;
+        height: 26px;
+        min-height: 0;
+        accent-color: var(--accent);
+      }
+      #stop-button {
+        background: #050505;
+        color: #ff8a80;
+        border-color: #ff8a80;
+      }
+      /* Layout compatto: piu' denso, per chi non ha bisogno della resa
+         accessibile (che resta il default). Contrasto e focus invariati. */
+      html.compact body { font-size: 16px; line-height: 1.45; }
+      html.compact main { width: min(880px, calc(100% - 32px)); padding: 20px 0 40px; }
+      html.compact h1 { font-size: clamp(1.5rem, 3vw, 2.1rem); margin-bottom: 14px; }
+      html.compact h2 { font-size: 1.25rem; margin-top: 24px; }
+      html.compact form, html.compact .result { padding: 16px; }
+      html.compact label { margin: 10px 0 4px; }
+      html.compact input, html.compact select, html.compact button {
+        min-height: 40px;
+        padding: 6px 10px;
+      }
+      html.compact textarea { min-height: 120px; }
+      html.compact button { margin-top: 14px; }
+      html.compact #form-fields {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        column-gap: 20px;
+        align-items: start;
+      }
+      html.compact #form-fields .field-full { grid-column: 1 / -1; }
+      html.compact .line { padding: 12px 14px 10px; margin-top: 12px; }
+      html.compact .line-actions button { min-height: 40px; width: 48px; }
+      @media (max-width: 820px) {
+        html.compact #form-fields { grid-template-columns: 1fr; }
+      }
     </style>
+    <script>
+      // Applica subito il layout salvato per evitare lo sfarfallio al caricamento.
+      try {
+        if (localStorage.getItem("poetryvoice_layout") === "compact") {
+          document.documentElement.classList.add("compact");
+        }
+      } catch (error) {}
+    </script>
   </head>
   <body>
     <main>
-      <nav class="lang-switcher" aria-label="{{ t.switcher_label }}">
-        <a href="/?lang=it" lang="it" aria-current="{{ 'true' if ui_lang == 'it' else 'false' }}">Italiano</a>
-        <a href="/?lang=en" lang="en" aria-current="{{ 'true' if ui_lang == 'en' else 'false' }}">English</a>
-      </nav>
+      <div class="topbar">
+        <button id="layout-toggle" type="button" class="toggle-button" aria-pressed="false">{{ t.layout_compact }}</button>
+        <nav class="lang-switcher" aria-label="{{ t.switcher_label }}">
+          <a href="/?lang=it" lang="it" aria-current="{{ 'true' if ui_lang == 'it' else 'false' }}">Italiano</a>
+          <a href="/?lang=en" lang="en" aria-current="{{ 'true' if ui_lang == 'en' else 'false' }}">English</a>
+        </nav>
+      </div>
       <h1>Poetry Voice</h1>
       <form id="convert-form" action="/convert" method="post" enctype="multipart/form-data" aria-label="{{ t.form_aria }}">
+        <div id="form-fields">
+        <fieldset class="source-toggle field-full">
+          <legend>{{ t.label_source }}</legend>
+          <label class="radio-label"><input type="radio" name="source_mode" value="file" {% if not form_data or not form_data.source_text %}checked{% endif %}> {{ t.source_file }}</label>
+          <label class="radio-label"><input type="radio" name="source_mode" value="text" {% if form_data and form_data.source_text %}checked{% endif %}> {{ t.source_write }}</label>
+        </fieldset>
+
+        <div class="field field-full" id="file-field" {% if form_data and form_data.source_text %}hidden{% endif %}>
         <label for="file">{{ t.label_file }}</label>
         <input id="file" name="file" type="file" accept=".txt,.md,.markdown,.pdf">
+        </div>
 
+        <div class="field field-full" id="text-field" {% if not form_data or not form_data.source_text %}hidden{% endif %}>
+        <label for="source_text">{{ t.label_text }}</label>
+        <textarea id="source_text" name="source_text">{{ form_data.source_text if form_data else '' }}</textarea>
+        </div>
+
+        <div class="field">
         <label for="tts_engine">{{ t.label_engine }}</label>
         <select id="tts_engine" name="tts_engine">
           <option value="piper" {% if not form_data or form_data.tts_engine == "piper" %}selected{% endif %}>Piper</option>
@@ -216,7 +313,9 @@
           <option value="dia" {% if form_data and form_data.tts_engine == "dia" %}selected{% endif %}>Dia</option>
           <option value="xtts" {% if form_data and form_data.tts_engine == "xtts" %}selected{% endif %}>XTTS v2</option>
         </select>
+        </div>
 
+        <div class="field">
         <label for="tts_speaker">{{ t.label_voice }}</label>
         <select id="tts_speaker" name="tts_speaker">
           {% for v in voices %}
@@ -224,13 +323,15 @@
           {% endfor %}
           <option value="" data-engine="none">{{ t.no_voice_option }}</option>
         </select>
+        </div>
 
-        <div id="clone-field" hidden>
+        <div class="field field-full" id="clone-field" hidden>
           <label for="speaker_sample">{{ t.label_clone }}</label>
           <input id="speaker_sample" name="speaker_sample" type="file" accept="audio/*,.wav,.mp3,.flac,.ogg">
           <p class="meta">{{ t.clone_hint }}</p>
         </div>
 
+        <div class="field">
         <label for="language">{{ t.label_language }}</label>
         <select id="language" name="language">
           <option value="it" {% if not form_data or form_data.language == "it" %}selected{% endif %}>{{ t.lang_it }}</option>
@@ -239,7 +340,9 @@
           <option value="es" {% if form_data and form_data.language == "es" %}selected{% endif %}>{{ t.lang_es }}</option>
           <option value="de" {% if form_data and form_data.language == "de" %}selected{% endif %}>{{ t.lang_de }}</option>
         </select>
+        </div>
 
+        <div class="field">
         <label for="reading_tone">{{ t.label_tone }}</label>
         <select id="reading_tone" name="reading_tone">
           <option value="caldo" {% if not form_data or form_data.reading_tone == "caldo" %}selected{% endif %}>{{ t.tone_caldo }}</option>
@@ -249,7 +352,9 @@
           <option value="solenne" {% if form_data and form_data.reading_tone == "solenne" %}selected{% endif %}>{{ t.tone_solenne }}</option>
           <option value="delicato" {% if form_data and form_data.reading_tone == "delicato" %}selected{% endif %}>{{ t.tone_delicato }}</option>
         </select>
+        </div>
 
+        <div class="field">
         <label for="reading_speed">{{ t.label_speed }}</label>
         <select id="reading_speed" name="reading_speed">
           <option value="slow" {% if not form_data or form_data.reading_speed == "slow" %}selected{% endif %}>{{ t.speed_slow }}</option>
@@ -257,21 +362,29 @@
           <option value="medium" {% if form_data and form_data.reading_speed == "medium" %}selected{% endif %}>{{ t.speed_medium }}</option>
           <option value="fast" {% if form_data and form_data.reading_speed == "fast" %}selected{% endif %}>{{ t.speed_fast }}</option>
         </select>
+        </div>
 
+        <div class="field">
         <label for="llm_provider">{{ t.label_llm_provider }}</label>
         <select id="llm_provider" name="llm_provider">
           <option value="ollama" {% if not form_data or form_data.llm_provider == "ollama" %}selected{% endif %}>Ollama</option>
           <option value="openai" {% if form_data and form_data.llm_provider == "openai" %}selected{% endif %}>{{ t.llm_openai }}</option>
           <option value="generic" {% if form_data and form_data.llm_provider == "generic" %}selected{% endif %}>{{ t.llm_generic }}</option>
         </select>
+        </div>
 
+        <div class="field">
         <label for="llm_model">{{ t.label_llm_model }}</label>
-        <input id="llm_model" name="llm_model" value="{{ form_data.llm_model if form_data else 'qwen3:8b' }}" autocomplete="off">
+        <input id="llm_model" name="llm_model" list="ollama-models" value="{{ form_data.llm_model if form_data else 'qwen3:8b' }}" autocomplete="off">
+        <datalist id="ollama-models"></datalist>
+        <p class="meta">{{ t.model_hint }}</p>
+        </div>
+        </div>
 
-        <textarea id="source_text" name="source_text" hidden>{{ form_data.source_text if form_data else '' }}</textarea>
         <input id="reading_instructions" name="reading_instructions" type="hidden" value="">
 
         <button id="submit-button" type="submit">{{ t.submit }}</button>
+        <button id="stop-button" type="button" hidden>{{ t.stop }}</button>
         <p id="conversion-status" class="status" role="status" aria-live="polite" hidden>
           {{ t.status_starting }}
         </p>
@@ -351,6 +464,88 @@
       const cloneField = document.querySelector("#clone-field");
       const speakerSample = document.querySelector("#speaker_sample");
       const progress = document.querySelector("#conversion-progress");
+      const formFields = document.querySelector("#form-fields");
+      const stopButton = document.querySelector("#stop-button");
+      const fileField = document.querySelector("#file-field");
+      const textField = document.querySelector("#text-field");
+      const layoutToggle = document.querySelector("#layout-toggle");
+      let currentJobId = null;
+
+      function currentSourceMode() {
+        return document.querySelector('input[name="source_mode"]:checked')?.value || "file";
+      }
+
+      function updateSourceFields() {
+        const mode = currentSourceMode();
+        if (fileField) fileField.hidden = mode !== "file";
+        if (textField) textField.hidden = mode !== "text";
+      }
+
+      document.querySelectorAll('input[name="source_mode"]').forEach((radio) => {
+        radio.addEventListener("change", updateSourceFields);
+      });
+      updateSourceFields();
+
+      // Durante l'elaborazione i parametri spariscono: restano solo stato,
+      // barra di avanzamento, log e il pulsante per fermare tutto.
+      function setBusy(busy) {
+        if (formFields) formFields.hidden = busy;
+        button.hidden = busy;
+        button.disabled = busy;
+        if (stopButton) {
+          stopButton.hidden = !busy;
+          stopButton.disabled = false;
+        }
+        if (busy) {
+          stopButton?.focus();
+        }
+      }
+
+      stopButton?.addEventListener("click", async () => {
+        if (!currentJobId) return;
+        stopButton.disabled = true;
+        status.textContent = T.js_stopping;
+        try {
+          await fetch(`/jobs/${currentJobId}/cancel`, { method: "POST" });
+        } catch (error) {}
+      });
+
+      // Layout compatto: default accessibile, scelta ricordata in localStorage
+      // (lo stato iniziale della classe viene applicato dallo script nel head).
+      function syncLayoutToggle() {
+        layoutToggle?.setAttribute(
+          "aria-pressed",
+          String(document.documentElement.classList.contains("compact"))
+        );
+      }
+      layoutToggle?.addEventListener("click", () => {
+        const compact = !document.documentElement.classList.contains("compact");
+        document.documentElement.classList.toggle("compact", compact);
+        try {
+          localStorage.setItem("poetryvoice_layout", compact ? "compact" : "accessible");
+        } catch (error) {}
+        syncLayoutToggle();
+      });
+      syncLayoutToggle();
+
+      // Modelli gia' presenti in Ollama: tendina (datalist) sul campo modello,
+      // che resta comunque scrivibile a mano.
+      async function loadOllamaModels() {
+        const datalist = document.querySelector("#ollama-models");
+        if (!datalist) return;
+        try {
+          const response = await fetch("/ollama-models");
+          const payload = await response.json();
+          datalist.replaceChildren(
+            ...(payload.models || []).map((name) => {
+              const option = document.createElement("option");
+              option.value = name;
+              return option;
+            })
+          );
+        } catch (error) {}
+      }
+      loadOllamaModels();
 
       function engineUsesCatalogVoice(engine) {
         return engine !== "xtts" && engine !== "dia";
@@ -395,12 +590,6 @@
         setProgress(Math.min(94, 8 + count * 13));
       }
 
-      fileInput?.addEventListener("change", () => {
-        if (fileInput.files?.length && sourceText?.value.trim()) {
-          sourceText.value = "";
-        }
-      });
-
       engineSelect?.addEventListener("change", () => {
         updateVoiceOptions();
         updateCloneField();
@@ -426,8 +615,35 @@
       updateVoiceOptions();
       updateCloneField();
 
+      function showFormError(message) {
+        status.hidden = false;
+        status.textContent = message;
+        status.classList.add("error");
+        hideProgress();
+        setBusy(false);
+      }
+
       form?.addEventListener("submit", async (event) => {
         event.preventDefault();
+
+        if (engineUsesCatalogVoice(engineSelect.value)) {
+          if (speakerSelect.disabled || !speakerSelect.value) {
+            showFormError(T.js_no_voice);
+            return;
+          }
+        } else if (engineSelect.value === "xtts" && !speakerSample?.files?.length) {
+          showFormError(T.js_xtts_sample);
+          return;
+        }
+        if (currentSourceMode() === "text" && !sourceText?.value.trim()) {
+          showFormError(T.js_no_text);
+          return;
+        }
+        if (currentSourceMode() === "file" && !fileInput?.files?.length) {
+          showFormError(T.error_no_input);
+          return;
+        }
+
         const previousAudio = resultSection?.querySelector("audio");
         previousAudio?.pause();
         if (previousAudio) {
@@ -436,49 +652,37 @@
         if (resultSection) {
           resultSection.hidden = true;
         }
-        button.disabled = true;
-        button.textContent = T.js_processing;
         status.hidden = false;
         status.classList.remove("error");
         status.textContent = T.js_started;
         logList.hidden = false;
         logList.replaceChildren();
         startProgress();
+        setBusy(true);
 
-        if (engineUsesCatalogVoice(engineSelect.value)) {
-          if (speakerSelect.disabled || !speakerSelect.value) {
-            status.textContent = T.js_no_voice;
-            status.classList.add("error");
-            hideProgress();
-            button.disabled = false;
-            button.textContent = T.submit;
-            return;
-          }
-        } else if (engineSelect.value === "xtts" && !speakerSample?.files?.length) {
-          status.textContent = T.js_xtts_sample;
-          status.classList.add("error");
-          hideProgress();
-          button.disabled = false;
-          button.textContent = T.submit;
-          return;
+        // Invia solo la sorgente attiva: cosi' un residuo nell'altra modalita'
+        // non prende il sopravvento.
+        const formData = new FormData(form);
+        if (currentSourceMode() === "file") {
+          formData.set("source_text", "");
+        } else {
+          formData.delete("file");
         }
 
         try {
           const response = await fetch(form.action, {
             method: "POST",
-            body: new FormData(form),
+            body: formData,
           });
           if (!response.ok) {
-            throw new Error(T.js_start_failed);
+            const payload = await response.json().catch(() => ({}));
+            throw new Error(payload.error || T.js_start_failed);
           }
           const payload = await response.json();
+          currentJobId = payload.job_id;
           pollJob(payload.job_id);
         } catch (error) {
-          status.textContent = error.message;
-          status.classList.add("error");
-          hideProgress();
-          button.disabled = false;
-          button.textContent = T.submit;
+          showFormError(error.message);
         }
       });
 
@@ -496,29 +700,48 @@
             return;
           }
 
-          if (job.status === "failed") {
-            status.textContent = job.error || T.js_failed;
-            status.classList.add("error");
+          if (job.status === "cancelled") {
+            currentJobId = null;
+            status.classList.remove("error");
+            status.textContent = T.js_cancelled;
             hideProgress();
-            button.disabled = false;
+            setBusy(false);
             if (resynthesizeButton) {
               resynthesizeButton.disabled = false;
             }
-            button.textContent = T.submit;
+            if (resultSection) {
+              resultSection.hidden = false;
+            }
+            button.focus();
+            return;
+          }
+
+          if (job.status === "failed") {
+            currentJobId = null;
+            status.textContent = job.error || T.js_failed;
+            status.classList.add("error");
+            hideProgress();
+            setBusy(false);
+            if (resynthesizeButton) {
+              resynthesizeButton.disabled = false;
+            }
+            if (resultSection) {
+              resultSection.hidden = false;
+            }
             return;
           }
 
           status.textContent = latestMessage(job.messages) || T.js_in_progress;
           setTimeout(() => pollJob(jobId), 1200);
         } catch (error) {
+          currentJobId = null;
           status.textContent = error.message;
           status.classList.add("error");
           hideProgress();
-          button.disabled = false;
+          setBusy(false);
           if (resynthesizeButton) {
             resynthesizeButton.disabled = false;
           }
-          button.textContent = T.submit;
         }
       }
 
@@ -595,7 +818,6 @@
         if (resultSection) {
           resultSection.hidden = true;
         }
-        button.disabled = true;
         resynthesizeButton.disabled = true;
         status.hidden = false;
         status.classList.remove("error");
@@ -603,6 +825,7 @@
         logList.hidden = false;
         logList.replaceChildren();
         startProgress();
+        setBusy(true);
 
         try {
           const response = await fetch("/synthesize-annotation", {
@@ -622,13 +845,17 @@
             throw new Error(payload.error || T.js_resynthesize_failed);
           }
           const payload = await response.json();
+          currentJobId = payload.job_id;
           pollJob(payload.job_id);
         } catch (error) {
           status.textContent = error.message;
           status.classList.add("error");
           hideProgress();
-          button.disabled = false;
+          setBusy(false);
           resynthesizeButton.disabled = false;
+          if (resultSection) {
+            resultSection.hidden = false;
+          }
         }
       }
 

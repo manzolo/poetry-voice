@@ -130,11 +130,17 @@ Lo schema e volutamente estendibile, cosi nuovi motori possono usare metadati pi
 
 ## Uso dell'interfaccia web
 
-La UI web supporta upload della poesia, scelta del motore TTS, lingua, tono e
+La UI web supporta upload della poesia **oppure** scrittura/incolla diretta del
+testo (interruttore "Sorgente del testo"), scelta del motore TTS, lingua, tono e
 velocita di lettura, modifica del testo estratto, indicazioni libere per il LLM,
-scelta di provider e modello LLM, anteprima annotata modificabile (testo, pausa
-ed emozione per ogni verso, con riordino dei versi), log di avanzamento con barra
-di progresso, ascolto e download dell'audio.
+scelta di provider e modello LLM (il campo modello propone in tendina i modelli
+gia scaricati in Ollama, ma resta scrivibile a mano), anteprima annotata
+modificabile (testo, pausa ed emozione per ogni verso, con riordino dei versi),
+log di avanzamento con barra di progresso, ascolto e download dell'audio.
+
+Durante l'elaborazione i parametri scompaiono e resta solo l'avanzamento, con
+un pulsante **Ferma elaborazione** per annullare il job; i campi ricompaiono a
+fine elaborazione, in caso di errore o di annullamento.
 
 L'interfaccia e bilingue: italiano e inglese, con selettore in alto a destra
 (la scelta viene ricordata). La lingua dell'interfaccia e indipendente dalla
@@ -153,6 +159,11 @@ Flusso consigliato:
 Scelte di accessibilita della UI: testo grande, alto contrasto, focus da tastiera
 ben visibile, HTML semantico, label esplicite, struttura compatibile con screen
 reader e controlli audio standard del browser.
+
+Il layout accessibile e il default; un pulsante **Layout compatto** in alto
+attiva una resa piu densa (testo piu piccolo, campi su due colonne) per chi non
+ne ha bisogno. La scelta viene ricordata dal browser; contrasto e focus da
+tastiera restano invariati.
 
 ## Configurazione
 

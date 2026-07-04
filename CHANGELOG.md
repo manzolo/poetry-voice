@@ -8,6 +8,18 @@ e il progetto segue il [versionamento semantico](https://semver.org/lang/it/).
 ## [Unreleased]
 
 ### Aggiunto
+- UI: sorgente del testo a scelta tra upload file e area di testo per scrivere
+  o incollare la poesia direttamente (interruttore accessibile con radio).
+- UI: pulsante **Ferma elaborazione** per annullare un job in corso (endpoint
+  `POST /jobs/{id}/cancel`, stato `cancelled`); durante l'elaborazione i campi
+  parametri scompaiono e resta solo l'avanzamento con il pulsante di stop, poi
+  ricompaiono a fine lavoro, su errore o annullamento.
+- UI: il campo "Modello LLM" propone in tendina i modelli gia scaricati
+  nell'istanza Ollama configurata (endpoint `GET /ollama-models`), restando
+  comunque scrivibile a mano.
+- UI: pulsante **Layout compatto** (il layout accessibile resta il default):
+  resa piu densa con campi su due colonne, scelta ricordata dal browser,
+  contrasto e focus invariati.
 - Interfaccia web bilingue italiano/inglese: selettore accessibile in alto,
   scelta ricordata con un cookie (`?lang=it|en`), stringhe in `ui/i18n.py` con
   test di parita' delle traduzioni. I log di avanzamento della pipeline

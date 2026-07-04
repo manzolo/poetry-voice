@@ -131,11 +131,17 @@ without changing the parser or the pipeline.
 
 ## Using the web interface
 
-The web UI supports poem upload, choice of TTS engine, reading language, tone
-and speed, editing of the extracted text, free-form instructions for the LLM,
-choice of LLM provider and model, an editable annotated preview (text, pause
-and emotion per line, with line reordering), a progress log with progress bar,
-audio playback and download.
+The web UI supports poem upload **or** writing/pasting the text directly
+(the "Text source" switch), choice of TTS engine, reading language, tone and
+speed, editing of the extracted text, free-form instructions for the LLM,
+choice of LLM provider and model (the model field offers a dropdown of models
+already downloaded in Ollama, while remaining freely editable), an editable
+annotated preview (text, pause and emotion per line, with line reordering),
+a progress log with progress bar, audio playback and download.
+
+While processing, the parameters disappear and only the progress remains, with
+a **Stop processing** button to cancel the job; the fields come back when the
+job finishes, fails or is cancelled.
 
 The interface is bilingual: Italian and English, with a switcher at the top
 right (the choice is remembered). The interface language is independent from
@@ -154,6 +160,11 @@ Suggested flow:
 UI accessibility choices: large text, high contrast, clearly visible keyboard
 focus, semantic HTML, explicit labels, screen-reader-friendly structure and
 the browser's standard audio controls.
+
+The accessible layout is the default; a **Compact layout** button at the top
+switches to a denser rendering (smaller text, two-column fields) for those who
+do not need it. The choice is remembered by the browser; contrast and keyboard
+focus stay unchanged.
 
 ## Configuration
 
