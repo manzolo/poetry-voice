@@ -44,8 +44,12 @@ Lint config: ruff + black, line length 100, target py312. Ruff enforces type ann
 The pipeline is a linear, layered flow orchestrated by `poetry_voice/pipeline/runner.py` (`PoetryVoicePipeline`):
 
 ```
-input file → parser → LLM analysis → PoemAnnotation (JSON) → TTS engine → FFmpeg → audiobook
+input file → parser → [segmentation] → LLM analysis → PoemAnnotation (JSON) → TTS engine → FFmpeg → audiobook
 ```
+
+Segmentation (`pipeline/segmentation.py`, config `pipeline.segmentation`): `lines` (default, one verse per line) or `sentences` (splits on end-of-sentence punctuation, for prose).
+
+**The LLM never regenerates the poem text.** `HttpJsonLLMProvider` sends numbered lines (`12| text`) and receives annotations indexed by line number (`{"line": 12, ...}`), which are re-attached to the original parsed lines in `merge_annotation` — so a looping LLM can degrade pauses but never the spoken text (this fixed hallucinated/repeated verses on long texts). Texts longer than `llm.max_lines_per_chunk` are analyzed in stanza chunks after a small global pass (title/mood); `llm.num_ctx` sets the Ollama context window (server defaults truncate long texts silently).
 
 `PoemAnnotation` / `LineAnnotation` (`poetry_voice/models.py`) is the central data contract that flows between every layer. It is deliberately extensible (per-line `metadata` dicts) so new engines can carry richer data without changing parser or pipeline.
 
@@ -59,7 +63,7 @@ Each layer is swapped via a factory + config, so adding a backend never touches 
 
 The whole system is built to keep working when heavy/optional dependencies or external services are missing:
 
-- `HttpJsonLLMProvider.analyze` catches **any** exception and falls back to `HeuristicLLMProvider` (a rule-based annotator). A broken/absent LLM still yields a valid `PoemAnnotation`.
+- `HttpJsonLLMProvider.analyze` catches **any** exception and falls back to `HeuristicLLMProvider` (a rule-based annotator). A broken/absent LLM still yields a valid `PoemAnnotation`. Degradation is granular: a failed chunk or an invalid/missing per-line annotation falls back to `heuristic_line` for those lines only, with an explicit `structlog` warning (never silent).
 - Each neural TTS provider holds a `FallbackToneTTSProvider` and delegates to it when its model is missing or the subprocess fails. The fallback uses `espeak-ng` if present, otherwise synthesizes plain tones. This is why the container starts even when `pip install ".[tts]"` fails.
 
 When debugging "wrong/robotic output", first check the logs (`structlog`) for fallback messages — the real engine may have silently degraded.
@@ -73,7 +77,7 @@ Note: after the LLM returns an annotation, `runner.py` **overrides** several ann
 ### Entry points
 
 - CLI (`cli.py`, console script `poetryvoice`): Typer app with `convert` and `web` subcommands. `main()` injects an implicit `convert` when the first arg isn't a known subcommand, so `poetryvoice poem.txt` works.
-- Web (`ui/app.py`, started by `poetryvoice web`): FastAPI + Jinja2 accessible UI. `ui/jobs.py` tracks progress for the streaming log shown during analysis/synthesis/post-processing. Supports re-synthesizing from an edited annotation **without** re-running the LLM (`synthesize_annotation`).
+- Web (`ui/app.py`, started by `poetryvoice web`): FastAPI + Jinja2 accessible UI. `ui/jobs.py` tracks progress for the streaming log shown during analysis/synthesis/post-processing; jobs are cancellable (`POST /jobs/{id}/cancel` → asyncio task cancel → status `cancelled`). `GET /ollama-models` lists models installed in the configured Ollama for the model-field datalist. Supports re-synthesizing from an edited annotation **without** re-running the LLM (`synthesize_annotation`). The accessible layout is the default; a client-side "compact layout" toggle (localStorage) densifies it without touching contrast or focus.
 - Container: `scripts/start-container.sh` launches `ollama serve`, waits for it, pulls the model (`OLLAMA_MODEL`, gated by `POETRYVOICE_PULL_MODEL`) and the Piper voice, then execs `poetryvoice web`.
 
 ## Extending

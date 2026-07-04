@@ -16,6 +16,24 @@ condivisa per non perdere le cose.
       con i file root creati da Docker); target `make fix-perms`.
 - [x] `make up` e `make local-run` stampano la URL da aprire.
 - [x] CI GitHub Actions: lint, test e conversione di prova su CPU; action su Node 24.
+- [x] Fix allucinazioni sui testi lunghi: l'LLM non rigenera piu il testo dei
+      versi (annotazioni indicizzate per numero, riattaccate al testo
+      originale), `num_ctx` Ollama configurabile, analisi a blocchi di strofe
+      (`max_lines_per_chunk`), fallback loggati e mai silenziosi.
+- [x] UI bilingue italiano/inglese (`ui/i18n.py`, `?lang=` + cookie, test di
+      parita' delle traduzioni) e `README.en.md` con link incrociati.
+- [x] Voci inglesi a catalogo (Piper: Lessac/Ryan; Kokoro: Heart/Michael),
+      voci legate a motore+lingua, CLI `--language` che auto-sceglie la voce,
+      fix `lang_code` Kokoro dal prefisso della voce.
+- [x] UI: sorgente del testo a scelta tra upload e textarea.
+- [x] UI: pulsante "Ferma elaborazione" (`POST /jobs/{id}/cancel`) e parametri
+      nascosti durante l'elaborazione (solo avanzamento + stop).
+- [x] UI: campo modello LLM con tendina dei modelli presenti in Ollama
+      (`GET /ollama-models`), sempre editabile a mano.
+- [x] UI: layout compatto opzionale (l'accessibile resta il default).
+- [x] Suddivisione del testo per versi (default) o per frasi in base alla
+      punteggiatura (`pipeline.segmentation`, UI + CLI `--split`).
+- [x] Test per le route della UI (index, convert, cancel, ollama-models, i18n).
 
 ## Da fare / idee
 
@@ -34,17 +52,24 @@ condivisa per non perdere le cose.
       upload nella UI, salvataggio in `uploads/voci-clonate/`.
 - [ ] Preset vocali migliori per l'italiano.
 - [ ] Implementazione reale dell'adapter Dia.
-- [ ] Stitching audio per verso con inserimento di silenzi naturali.
 - [ ] Anteprima voce prima del rendering completo.
 - [ ] Profili speaker ottimizzati per poesia.
-- [ ] Altre voci Piper e altre lingue nel catalogo.
+- [ ] Altre voci Piper e altre lingue nel catalogo (oggi it + en; la UI offre
+      anche fr/es/de come lingua di lettura ma senza voci a catalogo).
+- [ ] Verificare end-to-end il fix allucinazioni con Ollama e un testo lungo
+      reale (annotazioni indicizzate + chunking, commit edb8a8f).
 
 ### Pipeline / robustezza
 - [ ] Gestione PDF piu robusta.
 - [ ] Coda job opzionale per conversioni lunghe.
 - [ ] Opzione CLI `--output-dir` (oggi dipende solo dalla config).
 
+### Interfaccia
+- [ ] Tradurre anche i messaggi di avanzamento della pipeline (oggi solo in
+      italiano: servirebbe passare la lingua della UI dentro il runner).
+- [ ] Valutare se il selettore lingua interfaccia debba allineare anche la
+      lingua di lettura quando la form e ancora vuota.
+
 ### Infrastruttura
 - [ ] Valutare container Docker rootless per non creare file di proprieta root.
 - [ ] CI: matrice Python (3.12 / 3.13) e pin di ruff/black per evitare derive.
-- [ ] Test per le route della UI (convert, synthesize-annotation, result).

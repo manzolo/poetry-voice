@@ -318,7 +318,6 @@ The GitHub Actions CI runs lint, tests and a CPU trial conversion.
 
 - Better voice presets for Italian.
 - Real implementation of the Dia adapter.
-- Per-line audio stitching with natural silence insertion.
 - Voice preview before the full render.
 - More robust PDF handling.
 - Speaker profiles optimized for poetry.

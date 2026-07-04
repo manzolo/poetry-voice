@@ -317,7 +317,6 @@ La CI su GitHub Actions esegue lint, test e una conversione di prova su CPU.
 
 - Preset vocali migliori per l'italiano.
 - Implementazione reale dell'adapter Dia.
-- Stitching audio per verso con inserimento di silenzi naturali.
 - Anteprima voce prima del rendering completo.
 - Gestione PDF piu robusta.
 - Profili speaker ottimizzati per poesia.
