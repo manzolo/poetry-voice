@@ -35,6 +35,8 @@ e il progetto segue il [versionamento semantico](https://semver.org/lang/it/).
   abbinamenti sbagliati e da CLI `--language en` senza `--speaker` sceglie da
   solo una voce adatta.
 - `README.en.md`: versione inglese del README, con link incrociati.
+- Screenshot della UI (form principale e anteprima annotata) nei README, con
+  alt text descrittivi, sotto `docs/img/`.
 - Analisi LLM a blocchi di strofe per i testi lunghi (soglia configurabile con
   `llm.max_lines_per_chunk`, default 24): una passata leggera ricava titolo e
   tono globale, poi ogni blocco viene annotato con quel contesto e ricomposto

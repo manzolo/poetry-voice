@@ -131,6 +131,8 @@ without changing the parser or the pipeline.
 
 ## Using the web interface
 
+![Poetry Voice main form: text source (file or pasted text), TTS engine, voice, reading language, text splitting, tone, speed, LLM provider and model, Generate audiobook button](docs/img/ui-form.png)
+
 The web UI supports poem upload **or** writing/pasting the text directly
 (the "Text source" switch), choice of TTS engine, reading language, tone and
 speed, editing of the extracted text, free-form instructions for the LLM,
@@ -152,6 +154,8 @@ The interface is bilingual: Italian and English, with a switcher at the top
 right (the choice is remembered). The interface language is independent from
 the poem's reading language: the voice list filters automatically to match
 the selected engine and reading language.
+
+![Results page: audio player with download link and annotated preview, one card per line with editable text, pause after, emotion and buttons to reorder, add or delete lines](docs/img/ui-anteprima.png)
 
 Suggested flow:
 

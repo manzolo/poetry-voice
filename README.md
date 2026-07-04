@@ -130,6 +130,8 @@ Lo schema e volutamente estendibile, cosi nuovi motori possono usare metadati pi
 
 ## Uso dell'interfaccia web
 
+![Form principale di Poetry Voice: sorgente del testo (file o testo incollato), motore TTS, voce, lingua di lettura, suddivisione del testo, tono, velocita, provider e modello LLM, pulsante Genera audiolibro](docs/img/ui-form.png)
+
 La UI web supporta upload della poesia **oppure** scrittura/incolla diretta del
 testo (interruttore "Sorgente del testo"), scelta del motore TTS, lingua, tono e
 velocita di lettura, modifica del testo estratto, indicazioni libere per il LLM,
@@ -152,6 +154,8 @@ L'interfaccia e bilingue: italiano e inglese, con selettore in alto a destra
 (la scelta viene ricordata). La lingua dell'interfaccia e indipendente dalla
 lingua di lettura della poesia: l'elenco delle voci si filtra in automatico
 per motore e lingua di lettura selezionati.
+
+![Pagina dei risultati: player audio con download e anteprima annotata, un riquadro per ogni verso con testo modificabile, pausa dopo, emozione e pulsanti per riordinare, aggiungere o eliminare i versi](docs/img/ui-anteprima.png)
 
 Flusso consigliato:
 
