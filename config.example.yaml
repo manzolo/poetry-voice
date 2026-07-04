@@ -3,6 +3,10 @@ llm:
   model: qwen3:8b
   base_url: http://localhost:11434
   temperature: 0.2
+  # Finestra di contesto Ollama: alzala se i testi lunghi vengono troncati.
+  num_ctx: 8192
+  # Testi oltre questa soglia di versi vengono analizzati a blocchi di strofe.
+  max_lines_per_chunk: 24
   language: it
   reading_tone: caldo
   reading_speed: slow

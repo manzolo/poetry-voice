@@ -15,6 +15,12 @@ class LLMConfig(BaseModel):
     api_key: str | None = None
     timeout_seconds: float = 120.0
     temperature: float = Field(default=0.2, ge=0.0, le=2.0)
+    # Finestra di contesto per Ollama: i default del server (2048-4096 token)
+    # troncano i testi lunghi in silenzio e mandano il modello in loop.
+    num_ctx: int = Field(default=8192, ge=1024)
+    # Oltre questa soglia l'analisi viene spezzata in blocchi di strofe,
+    # annotati separatamente e ricomposti per numero di verso.
+    max_lines_per_chunk: int = Field(default=24, ge=4)
     language: str = "it"
     reading_tone: str = "caldo"
     reading_speed: Literal["very_slow", "slow", "medium", "fast"] = "slow"
