@@ -71,6 +71,10 @@ e il progetto segue il [versionamento semantico](https://semver.org/lang/it/).
 - Action della CI aggiornati a Node 24 (checkout@v7, setup-python@v6, cache@v6).
 
 ### Corretto
+- UI: nel layout compatto i campi parametri restavano visibili durante
+  l'elaborazione (il `display: grid` della griglia vinceva sull'attributo
+  `hidden`); ora una regola globale `[hidden] { display: none !important; }`
+  garantisce che cio che e nascosto sparisca davvero.
 - Kokoro: il `lang_code` deriva dal prefisso della voce (`if_sara` → `i`,
   `af_heart` → `a`) invece che da `language[:1]`, che funzionava solo per
   l'italiano.
