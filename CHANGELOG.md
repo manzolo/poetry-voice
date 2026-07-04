@@ -59,6 +59,9 @@ e il progetto segue il [versionamento semantico](https://semver.org/lang/it/).
 - `BACKLOG.md` e `LICENSE` (MIT).
 
 ### Modificato
+- UI: suggerimento sotto "Lingua di lettura" per chiarire che e la lingua
+  della poesia (e determina le voci disponibili), distinta dalla lingua
+  dell'interfaccia in alto a destra.
 - Il fallback dell'analisi LLM non e piu silenzioso: log espliciti quando
   l'intera analisi, un singolo blocco o un singolo verso degradano
   sull'euristica, e quando l'LLM restituisce indici duplicati o inesistenti.

@@ -39,6 +39,12 @@ _STRINGS: dict[str, dict[str, str]] = {
         "en": "Upload 6-15 seconds of clean speech: XTTS clones it to read the poem.",
     },
     "label_language": {"it": "Lingua di lettura", "en": "Reading language"},
+    "language_hint": {
+        "it": "È la lingua della poesia e determina le voci disponibili. "
+        "La lingua dell'interfaccia si cambia in alto a destra.",
+        "en": "This is the poem's language and determines the available voices. "
+        "The interface language is switched at the top right.",
+    },
     "lang_it": {"it": "Italiano", "en": "Italian"},
     "lang_en": {"it": "Inglese", "en": "English"},
     "lang_fr": {"it": "Francese", "en": "French"},
