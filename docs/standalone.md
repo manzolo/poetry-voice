@@ -9,7 +9,13 @@ basta **un comando solo**.
 
 ## In un comando solo
 
-Dalla cartella del progetto:
+Se non hai ancora il progetto:
+
+```bash
+git clone https://github.com/manzolo/poetry-voice.git && cd poetry-voice
+```
+
+Poi, dalla cartella del progetto:
 
 ```bash
 make local
@@ -28,13 +34,14 @@ Per riavviarla in futuro, di nuovo `make local`.
 ## Prerequisiti
 
 - **Python 3.12 o superiore** (verifica con `python3 --version`).
+- **make** (su Ubuntu/Debian e nel pacchetto omonimo).
 - **ffmpeg** (serve per MP3, FLAC e OGG).
 - **espeak-ng** (facoltativo: voce di ripiego se Piper non e disponibile).
 
-Su Ubuntu/Debian, un comando solo li installa entrambi:
+Su Ubuntu/Debian, un comando solo li installa tutti:
 
 ```bash
-sudo apt install ffmpeg espeak-ng
+sudo apt install make ffmpeg espeak-ng
 ```
 
 ## Se preferisci due passi separati

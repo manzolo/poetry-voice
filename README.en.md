@@ -10,30 +10,47 @@ The project is designed with special attention to accessibility. A patient, well
 
 *Inspired by Massimo Bianchini.*
 
+![Poetry Voice main form: text source (file or pasted text), TTS engine, voice, reading language, text splitting, tone, speed, LLM provider and model, Generate audiobook button](docs/img/ui-form.png)
+
 ## Accessibility
 
 The attention to accessibility also applies to whoever installs and uses the
 program. That is why every operation boils down to **a single command to copy**,
 and the web interface is designed for screen readers, high contrast and
-keyboard navigation.
+keyboard navigation. The accessible layout is the default; a **Compact
+layout** button switches to a denser rendering for those who do not need it.
 
 ## What it does
 
-- Reads poems from TXT, Markdown and PDF files.
-- Preserves the original line breaks as much as possible, even from PDFs.
+- Reads poems from TXT, Markdown and PDF files, or from text pasted in the UI.
+- Preserves the original line breaks as much as possible, even from PDFs;
+  alternatively splits the text into sentences by punctuation (for prose).
 - Uses an LLM to analyze tone, emotion, rhythm, pauses and emphasis.
-- Produces an extensible prosodic JSON annotation.
-- Sends the annotation to a swappable TTS engine.
-- Post-processes the audio with FFmpeg.
-- Exports WAV, FLAC, MP3 and optionally OGG.
-- Offers both a CLI and an accessible FastAPI web interface.
+- Produces an extensible prosodic JSON annotation, editable from the UI.
+- Sends the annotation to a swappable TTS engine (Piper, Kokoro, XTTS).
+- Post-processes the audio with FFmpeg and exports WAV, FLAC, MP3 and OGG.
+- Offers a CLI and an accessible, bilingual (it/en) FastAPI web interface,
+  with Italian and English voices.
 - Runs locally on CPU or in a Docker container with an NVIDIA GPU and Ollama included.
 
 ## How to use it
 
-Pick **one** of the two paths. You do not need both.
+First, get the project:
+
+```bash
+git clone https://github.com/manzolo/poetry-voice.git && cd poetry-voice
+```
+
+Then pick **one** of the two paths. You do not need both.
 
 ### Standalone — no Docker, no GPU (the simplest)
+
+Prerequisites: **Python ≥ 3.12**, `make` and `ffmpeg` (`espeak-ng` optional,
+as a fallback voice). On Ubuntu/Debian, one command:
+
+```bash
+sudo apt install make ffmpeg espeak-ng
+```
 
 Runs on your computer using the CPU. One command:
 
@@ -43,9 +60,12 @@ make local
 
 Then open `http://127.0.0.1:8000`.
 
-Full guide: **[docs/standalone.md](docs/standalone.md)**.
+Full guide: **[docs/standalone.md](docs/standalone.md)** (in Italian).
 
 ### Docker with NVIDIA GPU (best quality, Ollama included)
+
+Prerequisites: Docker with Compose, `make`, NVIDIA drivers and the
+[NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).
 
 ```bash
 make setup
@@ -54,9 +74,63 @@ make up
 
 Then open `http://localhost:8000`.
 
-Full guide: **[docs/docker.md](docs/docker.md)**.
+Full guide: **[docs/docker.md](docs/docker.md)** (in Italian).
 
-## Architecture
+## The web interface
+
+Upload (or paste) the text, choose engine, voice, language, tone and speed,
+and get the audiobook with a progress log you can stop at any time. The
+annotated preview is editable line by line and can be re-synthesized without
+re-running the analysis.
+
+![Results page: audio player with download link and annotated preview, one card per line with editable text, pause after, emotion and buttons to reorder, add or delete lines](docs/img/ui-anteprima.png)
+
+<details>
+<summary><strong>All interface features</strong></summary>
+
+The web UI supports poem upload **or** writing/pasting the text directly
+(the "Text source" switch), choice of TTS engine, reading language, tone and
+speed, editing of the extracted text, free-form instructions for the LLM,
+choice of LLM provider and model (the model field offers a dropdown of models
+already downloaded in Ollama, while remaining freely editable), an editable
+annotated preview (text, pause and emotion per line, with line reordering),
+a progress log with progress bar, audio playback and download.
+
+While processing, the parameters disappear and only the progress remains, with
+a **Stop processing** button to cancel the job; the fields come back when the
+job finishes, fails or is cancelled.
+
+The text can be split **by line breaks** (default: right for poems) or **by
+sentences** based on punctuation (better for prose, where the file's line
+breaks carry no rhythmic meaning). Available in the UI, from the CLI
+(`--split lines|sentences`) and in `config.yaml` (`pipeline.segmentation`).
+
+The interface is bilingual: Italian and English, with a switcher at the top
+right (the choice is remembered). The interface language is independent from
+the poem's reading language: the voice list filters automatically to match
+the selected engine and reading language.
+
+Suggested flow:
+
+1. Upload a file and generate the first audiobook.
+2. The extracted text stays in the form at the top.
+3. Edit lines, punctuation, or add instructions.
+4. In the annotated preview you can edit each line, its pause and emotion, and reorder lines.
+5. `Regenerate from edited preview` synthesizes again without re-running the LLM analysis.
+6. `Generate audiobook` re-runs the analysis starting from the edited text.
+
+UI accessibility choices: large text, high contrast, clearly visible keyboard
+focus, semantic HTML, explicit labels, screen-reader-friendly structure and
+the browser's standard audio controls. The accessible layout is the default;
+the **Compact layout** (remembered by the browser) shrinks text and spacing
+without touching contrast or keyboard focus.
+
+</details>
+
+## Deep dives
+
+<details>
+<summary><strong>Architecture</strong></summary>
 
 ```text
 input file
@@ -96,7 +170,10 @@ poetry_voice/
 tests/               unit tests
 ```
 
-## Prosodic annotation
+</details>
+
+<details>
+<summary><strong>Prosodic annotation</strong></summary>
 
 The LLM returns structured JSON like this:
 
@@ -129,53 +206,14 @@ The LLM returns structured JSON like this:
 The schema is deliberately extensible, so new engines can use richer metadata
 without changing the parser or the pipeline.
 
-## Using the web interface
+The poem text is never regenerated by the LLM: the model receives numbered
+lines and returns only indexed annotations, re-attached to the original text.
+A struggling LLM can at worst degrade the pauses, never the spoken content.
 
-![Poetry Voice main form: text source (file or pasted text), TTS engine, voice, reading language, text splitting, tone, speed, LLM provider and model, Generate audiobook button](docs/img/ui-form.png)
+</details>
 
-The web UI supports poem upload **or** writing/pasting the text directly
-(the "Text source" switch), choice of TTS engine, reading language, tone and
-speed, editing of the extracted text, free-form instructions for the LLM,
-choice of LLM provider and model (the model field offers a dropdown of models
-already downloaded in Ollama, while remaining freely editable), an editable
-annotated preview (text, pause and emotion per line, with line reordering),
-a progress log with progress bar, audio playback and download.
-
-While processing, the parameters disappear and only the progress remains, with
-a **Stop processing** button to cancel the job; the fields come back when the
-job finishes, fails or is cancelled.
-
-The text can be split **by line breaks** (default: right for poems) or **by
-sentences** based on punctuation (better for prose, where the file's line
-breaks carry no rhythmic meaning). Available in the UI, from the CLI
-(`--split lines|sentences`) and in `config.yaml` (`pipeline.segmentation`).
-
-The interface is bilingual: Italian and English, with a switcher at the top
-right (the choice is remembered). The interface language is independent from
-the poem's reading language: the voice list filters automatically to match
-the selected engine and reading language.
-
-![Results page: audio player with download link and annotated preview, one card per line with editable text, pause after, emotion and buttons to reorder, add or delete lines](docs/img/ui-anteprima.png)
-
-Suggested flow:
-
-1. Upload a file and generate the first audiobook.
-2. The extracted text stays in the form at the top.
-3. Edit lines, punctuation, or add instructions.
-4. In the annotated preview you can edit each line, its pause and emotion, and reorder lines.
-5. `Regenerate from edited preview` synthesizes again without re-running the LLM analysis.
-6. `Generate audiobook` re-runs the analysis starting from the edited text.
-
-UI accessibility choices: large text, high contrast, clearly visible keyboard
-focus, semantic HTML, explicit labels, screen-reader-friendly structure and
-the browser's standard audio controls.
-
-The accessible layout is the default; a **Compact layout** button at the top
-switches to a denser rendering (smaller text, two-column fields) for those who
-do not need it. The choice is remembered by the browser; contrast and keyboard
-focus stay unchanged.
-
-## Configuration
+<details>
+<summary><strong>Configuration</strong></summary>
 
 Configuration lives in `config.yaml` (for Docker) or in the defaults (locally).
 Example:
@@ -216,13 +254,18 @@ audio:
 pipeline:
   output_dir: outputs
   keep_intermediates: false
+  # "lines" = one verse per line (poems); "sentences" = sentences (prose).
+  segmentation: lines
 ```
 
 Locally, the `make local-*` targets use `config.local.yaml` and keep data under
 `local-data/` (owned by the user, separate from Docker's folders).
 `device: cuda` is ignored by Piper anyway, which runs on CPU.
 
-## Supported parsers
+</details>
+
+<details>
+<summary><strong>Supported parsers</strong></summary>
 
 | Format | Extension | Implementation |
 | --- | --- | --- |
@@ -230,14 +273,20 @@ Locally, the `make local-*` targets use `config.local.yaml` and keep data under
 | Markdown | `.md`, `.markdown` | `markdown-it-py` |
 | PDF | `.pdf` | layout extraction with `pypdf` |
 
-## LLM providers
+</details>
+
+<details>
+<summary><strong>LLM providers</strong></summary>
 
 The LLM layer is abstract. Current modes are `ollama` (default), `openai` and
 `generic`. The provider receives the poem and returns a validated
 `PoemAnnotation`. If the LLM call fails, a heuristic fallback generates a basic
 annotation to keep the rest of the pipeline usable.
 
-## TTS engines
+</details>
+
+<details>
+<summary><strong>TTS engines and voices</strong></summary>
 
 The TTS layer is abstract. Current adapters are `piper` (default), `kokoro`,
 `dia` and `xtts`. The engine is chosen via YAML:
@@ -278,12 +327,13 @@ If an optional neural backend is not available for the current Python/CUDA
 environment, Poetry Voice uses `espeak-ng` as an Italian fallback voice, so
 the pipeline, UI and post-processing remain usable.
 
-## Audio post-processing
+FFmpeg post-processing handles LUFS normalization, light compression, a short
+fade-in, MP3/FLAC/WAV/OGG export and configurable bitrate.
 
-FFmpeg is used for LUFS normalization, light compression, a short fade-in,
-MP3/FLAC/WAV/OGG export and configurable bitrate.
+</details>
 
-## Development
+<details>
+<summary><strong>Development and extensions</strong></summary>
 
 Local setup and quality checks:
 
@@ -304,21 +354,24 @@ ruff check . && black --check . && pytest
 
 The GitHub Actions CI runs lint, tests and a CPU trial conversion.
 
-### Adding a new LLM provider
+**Adding a new LLM provider**
 
 1. Create a class implementing `LLMProvider`.
 2. Return a validated `PoemAnnotation`.
 3. Register the class in `poetry_voice/llm/factory.py`.
 4. Add the configuration value to `LLMConfig.provider`.
 
-### Adding a new TTS engine
+**Adding a new TTS engine**
 
 1. Create an adapter in `poetry_voice/tts/`.
 2. Implement `TTSProvider.synthesize(annotation, output_wav)`.
 3. Register the adapter in `poetry_voice/tts/factory.py`.
 4. Add the configuration value to `TTSConfig.engine`.
 
-## Roadmap
+</details>
+
+<details>
+<summary><strong>Roadmap</strong></summary>
 
 - Better voice presets for Italian.
 - Real implementation of the Dia adapter.
@@ -327,6 +380,10 @@ The GitHub Actions CI runs lint, tests and a CPU trial conversion.
 - Speaker profiles optimized for poetry.
 - Optional job queue for long conversions.
 - Broader accessibility testing with screen readers.
+
+Operational details live in [BACKLOG.md](BACKLOG.md) (in Italian).
+
+</details>
 
 ## License
 

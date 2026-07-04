@@ -10,30 +10,47 @@ Il progetto e pensato con particolare attenzione all'accessibilita. Una voce paz
 
 *Ispirato da Massimo Bianchini.*
 
+![Form principale di Poetry Voice: sorgente del testo (file o testo incollato), motore TTS, voce, lingua di lettura, suddivisione del testo, tono, velocita, provider e modello LLM, pulsante Genera audiolibro](docs/img/ui-form.png)
+
 ## Accessibilita
 
 L'attenzione all'accessibilita vale anche per chi installa e usa il programma.
 Per questo ogni operazione e riducibile a **un solo comando da copiare**, e
 l'interfaccia web e progettata per screen reader, alto contrasto e navigazione
-da tastiera.
+da tastiera. Il layout accessibile e il default; un pulsante **Layout
+compatto** attiva una resa piu densa per chi non ne ha bisogno.
 
 ## Cosa fa
 
-- Legge poesie da file TXT, Markdown e PDF.
-- Preserva il piu possibile gli a capo originali, anche dai PDF.
+- Legge poesie da file TXT, Markdown e PDF, o da testo incollato nella UI.
+- Preserva il piu possibile gli a capo originali, anche dai PDF; in alternativa
+  divide il testo per frasi in base alla punteggiatura (per la prosa).
 - Usa un LLM per analizzare tono, emozione, ritmo, pause ed enfasi.
-- Produce un'annotazione prosodica JSON estendibile.
-- Invia l'annotazione a un motore TTS sostituibile.
-- Esegue post-processing audio con FFmpeg.
-- Esporta WAV, FLAC, MP3 e opzionalmente OGG.
-- Offre sia una CLI sia una interfaccia web FastAPI accessibile.
+- Produce un'annotazione prosodica JSON estendibile e modificabile dalla UI.
+- Invia l'annotazione a un motore TTS sostituibile (Piper, Kokoro, XTTS).
+- Esegue post-processing audio con FFmpeg ed esporta WAV, FLAC, MP3 e OGG.
+- Offre una CLI e una interfaccia web FastAPI accessibile e bilingue (it/en),
+  con voci italiane e inglesi.
 - Gira sia in locale su CPU sia in un container Docker con GPU NVIDIA e Ollama incluso.
 
 ## Come usarlo
 
-Scegli **una** delle due vie. Non servono entrambe.
+Prima di tutto scarica il progetto:
+
+```bash
+git clone https://github.com/manzolo/poetry-voice.git && cd poetry-voice
+```
+
+Poi scegli **una** delle due vie. Non servono entrambe.
 
 ### Standalone — senza Docker e senza GPU (la piu semplice)
+
+Prerequisiti: **Python ≥ 3.12**, `make` e `ffmpeg` (`espeak-ng` facoltativo,
+come voce di ripiego). Su Ubuntu/Debian un comando solo:
+
+```bash
+sudo apt install make ffmpeg espeak-ng
+```
 
 Gira sul tuo computer usando la CPU. Un comando solo:
 
@@ -47,6 +64,9 @@ Guida completa: **[docs/standalone.md](docs/standalone.md)**.
 
 ### Docker con GPU NVIDIA (qualita massima, Ollama incluso)
 
+Prerequisiti: Docker con Compose, `make`, driver NVIDIA e
+[NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).
+
 ```bash
 make setup
 make up
@@ -56,7 +76,62 @@ Poi apri `http://localhost:8000`.
 
 Guida completa: **[docs/docker.md](docs/docker.md)**.
 
-## Architettura
+## L'interfaccia web
+
+Carichi (o incolli) il testo, scegli motore, voce, lingua, tono e velocita, e
+ottieni l'audiolibro con un log di avanzamento che puoi fermare in ogni
+momento. L'anteprima annotata e modificabile verso per verso e si puo
+rigenerare senza rifare l'analisi.
+
+![Pagina dei risultati: player audio con download e anteprima annotata, un riquadro per ogni verso con testo modificabile, pausa dopo, emozione e pulsanti per riordinare, aggiungere o eliminare i versi](docs/img/ui-anteprima.png)
+
+<details>
+<summary><strong>Tutte le funzioni dell'interfaccia</strong></summary>
+
+La UI web supporta upload della poesia **oppure** scrittura/incolla diretta del
+testo (interruttore "Sorgente del testo"), scelta del motore TTS, lingua, tono e
+velocita di lettura, modifica del testo estratto, indicazioni libere per il LLM,
+scelta di provider e modello LLM (il campo modello propone in tendina i modelli
+gia scaricati in Ollama, ma resta scrivibile a mano), anteprima annotata
+modificabile (testo, pausa ed emozione per ogni verso, con riordino dei versi),
+log di avanzamento con barra di progresso, ascolto e download dell'audio.
+
+Durante l'elaborazione i parametri scompaiono e resta solo l'avanzamento, con
+un pulsante **Ferma elaborazione** per annullare il job; i campi ricompaiono a
+fine elaborazione, in caso di errore o di annullamento.
+
+Il testo si puo suddividere **per versi** (a capo, default: giusto per le
+poesie) oppure **per frasi** in base alla punteggiatura (meglio per la prosa,
+dove gli a capo del file non hanno valore ritmico). Opzione disponibile nella
+UI, da CLI (`--split lines|sentences`) e in `config.yaml`
+(`pipeline.segmentation`).
+
+L'interfaccia e bilingue: italiano e inglese, con selettore in alto a destra
+(la scelta viene ricordata). La lingua dell'interfaccia e indipendente dalla
+lingua di lettura della poesia: l'elenco delle voci si filtra in automatico
+per motore e lingua di lettura selezionati.
+
+Flusso consigliato:
+
+1. Carica un file e genera il primo audiolibro.
+2. Il testo estratto resta nella form in alto.
+3. Modifica versi, punteggiatura o aggiungi indicazioni.
+4. Nell'anteprima annotata puoi modificare ogni verso, la pausa e l'emozione, e riordinarli.
+5. `Rigenera da anteprima modificata` sintetizza di nuovo senza rifare l'analisi LLM.
+6. `Genera audiolibro` rifa invece l'analisi partendo dal testo modificato.
+
+Scelte di accessibilita della UI: testo grande, alto contrasto, focus da tastiera
+ben visibile, HTML semantico, label esplicite, struttura compatibile con screen
+reader e controlli audio standard del browser. Il layout accessibile e il
+default; il **Layout compatto** (scelta ricordata dal browser) riduce testo e
+spazi senza toccare contrasto e focus.
+
+</details>
+
+## Approfondimenti
+
+<details>
+<summary><strong>Architettura</strong></summary>
 
 ```text
 file input
@@ -96,7 +171,10 @@ poetry_voice/
 tests/               test unitari
 ```
 
-## Annotazione prosodica
+</details>
+
+<details>
+<summary><strong>Annotazione prosodica</strong></summary>
 
 Il LLM restituisce JSON strutturato di questo tipo:
 
@@ -128,54 +206,15 @@ Il LLM restituisce JSON strutturato di questo tipo:
 
 Lo schema e volutamente estendibile, cosi nuovi motori possono usare metadati piu ricchi senza modificare parser o pipeline.
 
-## Uso dell'interfaccia web
+Il testo dei versi non viene mai rigenerato dall'LLM: il modello riceve i versi
+numerati e restituisce solo annotazioni indicizzate, riattaccate al testo
+originale. Un LLM in difficolta puo al massimo degradare le pause, mai i
+contenuti letti.
 
-![Form principale di Poetry Voice: sorgente del testo (file o testo incollato), motore TTS, voce, lingua di lettura, suddivisione del testo, tono, velocita, provider e modello LLM, pulsante Genera audiolibro](docs/img/ui-form.png)
+</details>
 
-La UI web supporta upload della poesia **oppure** scrittura/incolla diretta del
-testo (interruttore "Sorgente del testo"), scelta del motore TTS, lingua, tono e
-velocita di lettura, modifica del testo estratto, indicazioni libere per il LLM,
-scelta di provider e modello LLM (il campo modello propone in tendina i modelli
-gia scaricati in Ollama, ma resta scrivibile a mano), anteprima annotata
-modificabile (testo, pausa ed emozione per ogni verso, con riordino dei versi),
-log di avanzamento con barra di progresso, ascolto e download dell'audio.
-
-Durante l'elaborazione i parametri scompaiono e resta solo l'avanzamento, con
-un pulsante **Ferma elaborazione** per annullare il job; i campi ricompaiono a
-fine elaborazione, in caso di errore o di annullamento.
-
-Il testo si puo suddividere **per versi** (a capo, default: giusto per le
-poesie) oppure **per frasi** in base alla punteggiatura (meglio per la prosa,
-dove gli a capo del file non hanno valore ritmico). Opzione disponibile nella
-UI, da CLI (`--split lines|sentences`) e in `config.yaml`
-(`pipeline.segmentation`).
-
-L'interfaccia e bilingue: italiano e inglese, con selettore in alto a destra
-(la scelta viene ricordata). La lingua dell'interfaccia e indipendente dalla
-lingua di lettura della poesia: l'elenco delle voci si filtra in automatico
-per motore e lingua di lettura selezionati.
-
-![Pagina dei risultati: player audio con download e anteprima annotata, un riquadro per ogni verso con testo modificabile, pausa dopo, emozione e pulsanti per riordinare, aggiungere o eliminare i versi](docs/img/ui-anteprima.png)
-
-Flusso consigliato:
-
-1. Carica un file e genera il primo audiolibro.
-2. Il testo estratto resta nella form in alto.
-3. Modifica versi, punteggiatura o aggiungi indicazioni.
-4. Nell'anteprima annotata puoi modificare ogni verso, la pausa e l'emozione, e riordinarli.
-5. `Rigenera da anteprima modificata` sintetizza di nuovo senza rifare l'analisi LLM.
-6. `Genera audiolibro` rifa invece l'analisi partendo dal testo modificato.
-
-Scelte di accessibilita della UI: testo grande, alto contrasto, focus da tastiera
-ben visibile, HTML semantico, label esplicite, struttura compatibile con screen
-reader e controlli audio standard del browser.
-
-Il layout accessibile e il default; un pulsante **Layout compatto** in alto
-attiva una resa piu densa (testo piu piccolo, campi su due colonne) per chi non
-ne ha bisogno. La scelta viene ricordata dal browser; contrasto e focus da
-tastiera restano invariati.
-
-## Configurazione
+<details>
+<summary><strong>Configurazione</strong></summary>
 
 La configurazione vive in `config.yaml` (per Docker) o nei valori predefiniti
 (in locale). Esempio:
@@ -216,13 +255,18 @@ audio:
 pipeline:
   output_dir: outputs
   keep_intermediates: false
+  # "lines" = un verso per riga (poesie); "sentences" = frasi (prosa).
+  segmentation: lines
 ```
 
 In locale i target `make local-*` usano `config.local.yaml` e tengono i dati
 sotto `local-data/` (di proprieta dell'utente, separati dalle cartelle di Docker).
 `device: cuda` viene comunque ignorato da Piper, che gira su CPU.
 
-## Parser supportati
+</details>
+
+<details>
+<summary><strong>Parser supportati</strong></summary>
 
 | Formato | Estensione | Implementazione |
 | --- | --- | --- |
@@ -230,14 +274,20 @@ sotto `local-data/` (di proprieta dell'utente, separati dalle cartelle di Docker
 | Markdown | `.md`, `.markdown` | `markdown-it-py` |
 | PDF | `.pdf` | estrazione layout con `pypdf` |
 
-## Provider LLM
+</details>
+
+<details>
+<summary><strong>Provider LLM</strong></summary>
 
 Il layer LLM e astratto. Le modalita attuali sono `ollama` (predefinito),
 `openai` e `generic`. Il provider riceve la poesia e restituisce un
 `PoemAnnotation` validato. Se la chiamata al LLM fallisce, un fallback euristico
 genera un'annotazione di base per mantenere usabile il resto della pipeline.
 
-## Motori TTS
+</details>
+
+<details>
+<summary><strong>Motori TTS e voci</strong></summary>
 
 Il layer TTS e astratto. Gli adapter attuali sono `piper` (predefinito),
 `kokoro`, `dia` e `xtts`. Il motore si sceglie via YAML:
@@ -277,12 +327,13 @@ Se un backend neurale opzionale non e disponibile per l'ambiente Python/CUDA
 corrente, Poetry Voice usa `espeak-ng` come voce di ripiego in italiano, cosi
 pipeline, UI e post-processing restano utilizzabili.
 
-## Post-processing audio
+Il post-processing FFmpeg si occupa di normalizzazione LUFS, compressione
+leggera, breve fade-in, esportazione MP3/FLAC/WAV/OGG e bitrate configurabile.
 
-FFmpeg viene usato per normalizzazione LUFS, compressione leggera, breve
-fade-in, esportazione MP3/FLAC/WAV/OGG e bitrate configurabile.
+</details>
 
-## Sviluppo
+<details>
+<summary><strong>Sviluppo ed estensioni</strong></summary>
 
 Setup locale e controlli qualita:
 
@@ -303,21 +354,24 @@ ruff check . && black --check . && pytest
 
 La CI su GitHub Actions esegue lint, test e una conversione di prova su CPU.
 
-### Aggiungere un nuovo provider LLM
+**Aggiungere un nuovo provider LLM**
 
 1. Crea una classe che implementa `LLMProvider`.
 2. Restituisci un `PoemAnnotation` validato.
 3. Registra la classe in `poetry_voice/llm/factory.py`.
 4. Aggiungi il valore di configurazione in `LLMConfig.provider`.
 
-### Aggiungere un nuovo motore TTS
+**Aggiungere un nuovo motore TTS**
 
 1. Crea un adapter in `poetry_voice/tts/`.
 2. Implementa `TTSProvider.synthesize(annotation, output_wav)`.
 3. Registra l'adapter in `poetry_voice/tts/factory.py`.
 4. Aggiungi il valore di configurazione in `TTSConfig.engine`.
 
-## Roadmap
+</details>
+
+<details>
+<summary><strong>Roadmap</strong></summary>
 
 - Preset vocali migliori per l'italiano.
 - Implementazione reale dell'adapter Dia.
@@ -326,6 +380,10 @@ La CI su GitHub Actions esegue lint, test e una conversione di prova su CPU.
 - Profili speaker ottimizzati per poesia.
 - Coda job opzionale per conversioni lunghe.
 - Test di accessibilita piu estesi con screen reader.
+
+Il dettaglio operativo vive in [BACKLOG.md](BACKLOG.md).
+
+</details>
 
 ## Licenza
 

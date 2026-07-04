@@ -66,6 +66,11 @@ e il progetto segue il [versionamento semantico](https://semver.org/lang/it/).
 - `BACKLOG.md` e `LICENSE` (MIT).
 
 ### Modificato
+- README piu snello: in vista restano identita del progetto, screenshot,
+  prerequisiti e avvio (ora con `git clone` e comando apt per Python/make/
+  ffmpeg); architettura, configurazione, voci, sviluppo e roadmap sono
+  sezioni richiudibili (`<details>`). Prerequisiti e clone aggiunti anche
+  alle guide `docs/standalone.md` e `docs/docker.md`.
 - UI: suggerimento sotto "Lingua di lettura" per chiarire che e la lingua
   della poesia (e determina le voci disponibili), distinta dalla lingua
   dell'interfaccia in alto a destra.

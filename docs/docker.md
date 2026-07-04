@@ -16,6 +16,8 @@ Se non hai una GPU NVIDIA, usa invece la [versione standalone](standalone.md).
 
 ## Avvio in due comandi
 
+Se non hai ancora il progetto: `git clone https://github.com/manzolo/poetry-voice.git && cd poetry-voice`. Poi:
+
 ```bash
 make setup
 make up
