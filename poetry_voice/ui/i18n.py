@@ -50,6 +50,16 @@ _STRINGS: dict[str, dict[str, str]] = {
     "lang_fr": {"it": "Francese", "en": "French"},
     "lang_es": {"it": "Spagnolo", "en": "Spanish"},
     "lang_de": {"it": "Tedesco", "en": "German"},
+    "label_split": {"it": "Suddivisione del testo", "en": "Text splitting"},
+    "split_lines": {"it": "Per versi (a capo)", "en": "By line breaks (verses)"},
+    "split_sentences": {
+        "it": "Per frasi (punteggiatura)",
+        "en": "By sentences (punctuation)",
+    },
+    "split_hint": {
+        "it": "Per le poesie usa i versi; per la prosa conviene la punteggiatura.",
+        "en": "Use verses for poems; punctuation works better for prose.",
+    },
     "label_tone": {"it": "Tono", "en": "Tone"},
     "tone_caldo": {"it": "Caldo", "en": "Warm"},
     "tone_neutro": {"it": "Neutro", "en": "Neutral"},

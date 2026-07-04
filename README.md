@@ -142,6 +142,12 @@ Durante l'elaborazione i parametri scompaiono e resta solo l'avanzamento, con
 un pulsante **Ferma elaborazione** per annullare il job; i campi ricompaiono a
 fine elaborazione, in caso di errore o di annullamento.
 
+Il testo si puo suddividere **per versi** (a capo, default: giusto per le
+poesie) oppure **per frasi** in base alla punteggiatura (meglio per la prosa,
+dove gli a capo del file non hanno valore ritmico). Opzione disponibile nella
+UI, da CLI (`--split lines|sentences`) e in `config.yaml`
+(`pipeline.segmentation`).
+
 L'interfaccia e bilingue: italiano e inglese, con selettore in alto a destra
 (la scelta viene ricordata). La lingua dell'interfaccia e indipendente dalla
 lingua di lettura della poesia: l'elenco delle voci si filtra in automatico

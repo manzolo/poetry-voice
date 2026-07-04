@@ -56,6 +56,7 @@ async def convert(
     language: str = Form("it"),
     reading_tone: str = Form("caldo"),
     reading_speed: str = Form("slow"),
+    segmentation: str = Form("lines"),
     llm_provider: str = Form("ollama"),
     llm_model: str = Form("qwen3:8b"),
     speaker_sample: UploadFile | None = File(None),
@@ -88,6 +89,9 @@ async def convert(
     config.llm.reading_instructions = reading_instructions
     config.llm.provider = llm_provider  # type: ignore[assignment]
     config.llm.model = llm_model
+    if segmentation not in {"lines", "sentences"}:
+        segmentation = "lines"
+    config.pipeline.segmentation = segmentation  # type: ignore[assignment]
     # Clonazione voce per XTTS: salva il campione caricato e puntaci la config.
     if speaker_sample is not None and speaker_sample.filename:
         voices_dir = UPLOAD_DIR / "voci-clonate"
@@ -104,6 +108,7 @@ async def convert(
         "language": language,
         "reading_tone": reading_tone,
         "reading_speed": reading_speed,
+        "segmentation": segmentation,
         "llm_provider": llm_provider,
         "llm_model": llm_model,
     }

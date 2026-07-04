@@ -143,6 +143,11 @@ While processing, the parameters disappear and only the progress remains, with
 a **Stop processing** button to cancel the job; the fields come back when the
 job finishes, fails or is cancelled.
 
+The text can be split **by line breaks** (default: right for poems) or **by
+sentences** based on punctuation (better for prose, where the file's line
+breaks carry no rhythmic meaning). Available in the UI, from the CLI
+(`--split lines|sentences`) and in `config.yaml` (`pipeline.segmentation`).
+
 The interface is bilingual: Italian and English, with a switcher at the top
 right (the choice is remembered). The interface language is independent from
 the poem's reading language: the voice list filters automatically to match

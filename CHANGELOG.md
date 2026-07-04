@@ -8,6 +8,11 @@ e il progetto segue il [versionamento semantico](https://semver.org/lang/it/).
 ## [Unreleased]
 
 ### Aggiunto
+- Suddivisione del testo configurabile: **per versi** (a capo, default) o
+  **per frasi** in base alla punteggiatura (per la prosa: gli a capo interni
+  ai paragrafi vengono uniti, i paragrafi restano separatori di strofa).
+  Disponibile nella UI, da CLI (`--split lines|sentences`) e in config
+  (`pipeline.segmentation`).
 - UI: sorgente del testo a scelta tra upload file e area di testo per scrivere
   o incollare la poesia direttamente (interruttore accessibile con radio).
 - UI: pulsante **Ferma elaborazione** per annullare un job in corso (endpoint

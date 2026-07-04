@@ -11,6 +11,7 @@ from poetry_voice.config.settings import AppConfig
 from poetry_voice.llm.factory import build_llm_provider
 from poetry_voice.models import PoemAnnotation, SynthesisResult
 from poetry_voice.parser.factory import parse_document
+from poetry_voice.pipeline.segmentation import split_into_sentences
 from poetry_voice.tts.factory import build_tts_provider
 
 logger = structlog.get_logger(__name__)
@@ -33,10 +34,14 @@ class PoetryVoicePipeline:
             progress,
             f"File letto: formato {document.source_format}, {len(document.text)} caratteri",
         )
+        text = document.text
+        if self.config.pipeline.segmentation == "sentences":
+            text = split_into_sentences(text)
+            await _publish(progress, "Testo suddiviso in frasi in base alla punteggiatura")
         await _publish(
             progress, f"Analisi LLM con {self.config.llm.provider} / {self.config.llm.model}"
         )
-        annotation = await self.llm.analyze(document.text)
+        annotation = await self.llm.analyze(text)
         annotation.language = self.config.llm.language
         annotation.mood = self.config.llm.reading_tone
         annotation.overall_speed = self.config.tts.speed

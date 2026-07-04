@@ -53,6 +53,10 @@ class AudioConfig(BaseModel):
 class PipelineConfig(BaseModel):
     output_dir: Path = Path("outputs")
     keep_intermediates: bool = False
+    # Come dividere il testo nelle unita' di lettura: "lines" = un verso per
+    # riga (poesie), "sentences" = frasi intere in base alla punteggiatura
+    # (prosa: gli a capo interni ai paragrafi vengono ignorati).
+    segmentation: Literal["lines", "sentences"] = "lines"
 
 
 class AppConfig(BaseModel):

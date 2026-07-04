@@ -33,3 +33,6 @@ audio:
 pipeline:
   output_dir: outputs
   keep_intermediates: false
+  # "lines" = un verso per riga (poesie); "sentences" = frasi intere in base
+  # alla punteggiatura (prosa).
+  segmentation: lines

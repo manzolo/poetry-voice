@@ -27,6 +27,7 @@ def _run_conversion(
     speed: str | None,
     language: str | None,
     tone: str | None,
+    split: str | None,
     output_format: str | None,
     log_level: str,
 ) -> None:
@@ -54,6 +55,10 @@ def _run_conversion(
         raise typer.BadParameter(validation_error)
     if tone:
         app_config.llm.reading_tone = tone
+    if split:
+        if split not in {"lines", "sentences"}:
+            raise typer.BadParameter("--split accetta 'lines' (versi) o 'sentences' (frasi).")
+        app_config.pipeline.segmentation = split  # type: ignore[assignment]
     if output_format:
         app_config.audio.format = output_format  # type: ignore[assignment]
     if speed:
@@ -76,6 +81,7 @@ def convert(
     speed: Annotated[str | None, typer.Option("--speed")] = None,
     language: Annotated[str | None, typer.Option("--language")] = None,
     tone: Annotated[str | None, typer.Option("--tone")] = None,
+    split: Annotated[str | None, typer.Option("--split")] = None,
     output_format: Annotated[str | None, typer.Option("--format")] = None,
     log_level: Annotated[str, typer.Option("--log-level")] = "INFO",
 ) -> None:
@@ -89,6 +95,7 @@ def convert(
         speed,
         language,
         tone,
+        split,
         output_format,
         log_level,
     )

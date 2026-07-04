@@ -347,6 +347,15 @@
         </div>
 
         <div class="field">
+        <label for="segmentation">{{ t.label_split }}</label>
+        <select id="segmentation" name="segmentation">
+          <option value="lines" {% if not form_data or form_data.segmentation != "sentences" %}selected{% endif %}>{{ t.split_lines }}</option>
+          <option value="sentences" {% if form_data and form_data.segmentation == "sentences" %}selected{% endif %}>{{ t.split_sentences }}</option>
+        </select>
+        <p class="meta">{{ t.split_hint }}</p>
+        </div>
+
+        <div class="field">
         <label for="reading_tone">{{ t.label_tone }}</label>
         <select id="reading_tone" name="reading_tone">
           <option value="caldo" {% if not form_data or form_data.reading_tone == "caldo" %}selected{% endif %}>{{ t.tone_caldo }}</option>
