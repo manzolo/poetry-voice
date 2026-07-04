@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="it">
+<html lang="{{ ui_lang }}">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -184,16 +184,32 @@
         }
       }
       audio { width: 100%; margin-top: 12px; }
+      .lang-switcher {
+        display: flex;
+        gap: 20px;
+        justify-content: flex-end;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+      .lang-switcher a[aria-current="true"] {
+        text-decoration: none;
+        color: var(--text);
+        border-bottom: 3px solid var(--accent);
+      }
     </style>
   </head>
   <body>
     <main>
+      <nav class="lang-switcher" aria-label="{{ t.switcher_label }}">
+        <a href="/?lang=it" lang="it" aria-current="{{ 'true' if ui_lang == 'it' else 'false' }}">Italiano</a>
+        <a href="/?lang=en" lang="en" aria-current="{{ 'true' if ui_lang == 'en' else 'false' }}">English</a>
+      </nav>
       <h1>Poetry Voice</h1>
-      <form id="convert-form" action="/convert" method="post" enctype="multipart/form-data" aria-label="Converti poesia">
-        <label for="file">File poesia TXT, Markdown o PDF</label>
+      <form id="convert-form" action="/convert" method="post" enctype="multipart/form-data" aria-label="{{ t.form_aria }}">
+        <label for="file">{{ t.label_file }}</label>
         <input id="file" name="file" type="file" accept=".txt,.md,.markdown,.pdf">
 
-        <label for="tts_engine">Motore TTS</label>
+        <label for="tts_engine">{{ t.label_engine }}</label>
         <select id="tts_engine" name="tts_engine">
           <option value="piper" {% if not form_data or form_data.tts_engine == "piper" %}selected{% endif %}>Piper</option>
           <option value="kokoro" {% if form_data and form_data.tts_engine == "kokoro" %}selected{% endif %}>Kokoro</option>
@@ -201,65 +217,65 @@
           <option value="xtts" {% if form_data and form_data.tts_engine == "xtts" %}selected{% endif %}>XTTS v2</option>
         </select>
 
-        <label for="tts_speaker">Voce</label>
+        <label for="tts_speaker">{{ t.label_voice }}</label>
         <select id="tts_speaker" name="tts_speaker">
           {% for v in voices %}
-          <option value="{{ v.key }}" data-engine="{{ v.engine }}" {% if (form_data and form_data.tts_speaker == v.key) or (not form_data and loop.first) %}selected{% endif %}>{{ v.label }}</option>
+          <option value="{{ v.key }}" data-engine="{{ v.engine }}" data-language="{{ v.language }}" {% if (form_data and form_data.tts_speaker == v.key) or (not form_data and loop.first) %}selected{% endif %}>{{ v.label }}</option>
           {% endfor %}
-          <option value="" data-engine="none">Nessuna voce compatibile registrata</option>
+          <option value="" data-engine="none">{{ t.no_voice_option }}</option>
         </select>
 
         <div id="clone-field" hidden>
-          <label for="speaker_sample">Campione voce per clonazione (XTTS) - audio WAV, MP3, FLAC o OGG</label>
+          <label for="speaker_sample">{{ t.label_clone }}</label>
           <input id="speaker_sample" name="speaker_sample" type="file" accept="audio/*,.wav,.mp3,.flac,.ogg">
-          <p class="meta">Carica 6-15 secondi di voce pulita: XTTS la clona per leggere la poesia.</p>
+          <p class="meta">{{ t.clone_hint }}</p>
         </div>
 
-        <label for="language">Lingua</label>
+        <label for="language">{{ t.label_language }}</label>
         <select id="language" name="language">
-          <option value="it" {% if not form_data or form_data.language == "it" %}selected{% endif %}>Italiano</option>
-          <option value="en" {% if form_data and form_data.language == "en" %}selected{% endif %}>Inglese</option>
-          <option value="fr" {% if form_data and form_data.language == "fr" %}selected{% endif %}>Francese</option>
-          <option value="es" {% if form_data and form_data.language == "es" %}selected{% endif %}>Spagnolo</option>
-          <option value="de" {% if form_data and form_data.language == "de" %}selected{% endif %}>Tedesco</option>
+          <option value="it" {% if not form_data or form_data.language == "it" %}selected{% endif %}>{{ t.lang_it }}</option>
+          <option value="en" {% if form_data and form_data.language == "en" %}selected{% endif %}>{{ t.lang_en }}</option>
+          <option value="fr" {% if form_data and form_data.language == "fr" %}selected{% endif %}>{{ t.lang_fr }}</option>
+          <option value="es" {% if form_data and form_data.language == "es" %}selected{% endif %}>{{ t.lang_es }}</option>
+          <option value="de" {% if form_data and form_data.language == "de" %}selected{% endif %}>{{ t.lang_de }}</option>
         </select>
 
-        <label for="reading_tone">Tono</label>
+        <label for="reading_tone">{{ t.label_tone }}</label>
         <select id="reading_tone" name="reading_tone">
-          <option value="caldo" {% if not form_data or form_data.reading_tone == "caldo" %}selected{% endif %}>Caldo</option>
-          <option value="neutro" {% if form_data and form_data.reading_tone == "neutro" %}selected{% endif %}>Neutro</option>
-          <option value="sereno" {% if form_data and form_data.reading_tone == "sereno" %}selected{% endif %}>Sereno</option>
-          <option value="malinconico" {% if form_data and form_data.reading_tone == "malinconico" %}selected{% endif %}>Malinconico</option>
-          <option value="solenne" {% if form_data and form_data.reading_tone == "solenne" %}selected{% endif %}>Solenne</option>
-          <option value="delicato" {% if form_data and form_data.reading_tone == "delicato" %}selected{% endif %}>Delicato</option>
+          <option value="caldo" {% if not form_data or form_data.reading_tone == "caldo" %}selected{% endif %}>{{ t.tone_caldo }}</option>
+          <option value="neutro" {% if form_data and form_data.reading_tone == "neutro" %}selected{% endif %}>{{ t.tone_neutro }}</option>
+          <option value="sereno" {% if form_data and form_data.reading_tone == "sereno" %}selected{% endif %}>{{ t.tone_sereno }}</option>
+          <option value="malinconico" {% if form_data and form_data.reading_tone == "malinconico" %}selected{% endif %}>{{ t.tone_malinconico }}</option>
+          <option value="solenne" {% if form_data and form_data.reading_tone == "solenne" %}selected{% endif %}>{{ t.tone_solenne }}</option>
+          <option value="delicato" {% if form_data and form_data.reading_tone == "delicato" %}selected{% endif %}>{{ t.tone_delicato }}</option>
         </select>
 
-        <label for="reading_speed">Velocità</label>
+        <label for="reading_speed">{{ t.label_speed }}</label>
         <select id="reading_speed" name="reading_speed">
-          <option value="slow" {% if not form_data or form_data.reading_speed == "slow" %}selected{% endif %}>Lenta</option>
-          <option value="very_slow" {% if form_data and form_data.reading_speed == "very_slow" %}selected{% endif %}>Molto lenta</option>
-          <option value="medium" {% if form_data and form_data.reading_speed == "medium" %}selected{% endif %}>Media</option>
-          <option value="fast" {% if form_data and form_data.reading_speed == "fast" %}selected{% endif %}>Veloce</option>
+          <option value="slow" {% if not form_data or form_data.reading_speed == "slow" %}selected{% endif %}>{{ t.speed_slow }}</option>
+          <option value="very_slow" {% if form_data and form_data.reading_speed == "very_slow" %}selected{% endif %}>{{ t.speed_very_slow }}</option>
+          <option value="medium" {% if form_data and form_data.reading_speed == "medium" %}selected{% endif %}>{{ t.speed_medium }}</option>
+          <option value="fast" {% if form_data and form_data.reading_speed == "fast" %}selected{% endif %}>{{ t.speed_fast }}</option>
         </select>
 
-        <label for="llm_provider">Provider LLM</label>
+        <label for="llm_provider">{{ t.label_llm_provider }}</label>
         <select id="llm_provider" name="llm_provider">
           <option value="ollama" {% if not form_data or form_data.llm_provider == "ollama" %}selected{% endif %}>Ollama</option>
-          <option value="openai" {% if form_data and form_data.llm_provider == "openai" %}selected{% endif %}>OpenAI compatibile</option>
-          <option value="generic" {% if form_data and form_data.llm_provider == "generic" %}selected{% endif %}>API generica</option>
+          <option value="openai" {% if form_data and form_data.llm_provider == "openai" %}selected{% endif %}>{{ t.llm_openai }}</option>
+          <option value="generic" {% if form_data and form_data.llm_provider == "generic" %}selected{% endif %}>{{ t.llm_generic }}</option>
         </select>
 
-        <label for="llm_model">Modello LLM</label>
+        <label for="llm_model">{{ t.label_llm_model }}</label>
         <input id="llm_model" name="llm_model" value="{{ form_data.llm_model if form_data else 'qwen3:8b' }}" autocomplete="off">
 
         <textarea id="source_text" name="source_text" hidden>{{ form_data.source_text if form_data else '' }}</textarea>
         <input id="reading_instructions" name="reading_instructions" type="hidden" value="">
 
-        <button id="submit-button" type="submit">Genera audiolibro</button>
+        <button id="submit-button" type="submit">{{ t.submit }}</button>
         <p id="conversion-status" class="status" role="status" aria-live="polite" hidden>
-          Avvio elaborazione...
+          {{ t.status_starting }}
         </p>
-        <div id="conversion-progress" class="progress" role="progressbar" aria-label="Avanzamento elaborazione" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden>
+        <div id="conversion-progress" class="progress" role="progressbar" aria-label="{{ t.progress_aria }}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden>
           <div class="progress-bar"></div>
         </div>
         <ol id="conversion-log" class="log-list" aria-live="polite" hidden></ol>
@@ -272,54 +288,55 @@
       {% if annotation %}
       <section id="result-section" class="result" aria-labelledby="preview-title">
         <h2 id="preview-title">{{ annotation.title }}</h2>
-        <p class="meta">Tono: {{ annotation.mood }}. Stile voce: {{ annotation.voice_style }}.</p>
+        <p class="meta">{{ t.meta_tone }}: {{ annotation.mood }}. {{ t.meta_voice_style }}: {{ annotation.voice_style }}.</p>
         {% if audio_url %}
-        <audio controls src="{{ audio_url }}" aria-label="Anteprima audio generato"></audio>
-        <p><a href="{{ audio_url }}" download>Download audio</a></p>
+        <audio controls src="{{ audio_url }}" aria-label="{{ t.audio_aria }}"></audio>
+        <p><a href="{{ audio_url }}" download>{{ t.download }}</a></p>
         {% endif %}
-        <h2>Anteprima annotata</h2>
+        <h2>{{ t.preview_title }}</h2>
         {% for line in annotation.lines %}
         <article class="line editable-line" data-line-index="{{ loop.index0 }}">
           <div class="line-grid">
             <div>
-              <label for="line_text_{{ loop.index0 }}">Verso {{ loop.index }}</label>
+              <label for="line_text_{{ loop.index0 }}">{{ t.line_label }} {{ loop.index }}</label>
               <textarea id="line_text_{{ loop.index0 }}" class="line-text">{{ line.text }}</textarea>
             </div>
             <div>
-              <label for="line_pause_{{ loop.index0 }}">Pausa dopo</label>
+              <label for="line_pause_{{ loop.index0 }}">{{ t.label_pause }}</label>
               <input id="line_pause_{{ loop.index0 }}" class="line-pause" type="number" min="0" max="8" step="0.1" value="{{ '%.1f'|format(line.pause_after) }}">
             </div>
             <div>
-              <label for="line_emotion_{{ loop.index0 }}">Emozione</label>
+              <label for="line_emotion_{{ loop.index0 }}">{{ t.label_emotion }}</label>
               <select id="line_emotion_{{ loop.index0 }}" class="line-emotion">
-                <option value="contemplative" {% if line.emotion == "contemplative" %}selected{% endif %}>Contemplativa</option>
-                <option value="calm" {% if line.emotion == "calm" %}selected{% endif %}>Calma</option>
-                <option value="melancholic" {% if line.emotion == "melancholic" or line.emotion == "melancolico" %}selected{% endif %}>Malinconica</option>
-                <option value="tender" {% if line.emotion == "tender" %}selected{% endif %}>Tenera</option>
-                <option value="solemn" {% if line.emotion == "solemn" %}selected{% endif %}>Solenne</option>
-                <option value="wonder" {% if line.emotion == "wonder" %}selected{% endif %}>Meraviglia</option>
-                <option value="tense" {% if line.emotion == "tense" %}selected{% endif %}>Tesa</option>
+                <option value="contemplative" {% if line.emotion == "contemplative" %}selected{% endif %}>{{ t.emotion_contemplative }}</option>
+                <option value="calm" {% if line.emotion == "calm" %}selected{% endif %}>{{ t.emotion_calm }}</option>
+                <option value="melancholic" {% if line.emotion == "melancholic" or line.emotion == "melancolico" %}selected{% endif %}>{{ t.emotion_melancholic }}</option>
+                <option value="tender" {% if line.emotion == "tender" %}selected{% endif %}>{{ t.emotion_tender }}</option>
+                <option value="solemn" {% if line.emotion == "solemn" %}selected{% endif %}>{{ t.emotion_solemn }}</option>
+                <option value="wonder" {% if line.emotion == "wonder" %}selected{% endif %}>{{ t.emotion_wonder }}</option>
+                <option value="tense" {% if line.emotion == "tense" %}selected{% endif %}>{{ t.emotion_tense }}</option>
               </select>
             </div>
-            <div class="line-actions" role="group" aria-label="Azioni verso">
-              <span class="field-label" aria-hidden="true">Azioni</span>
+            <div class="line-actions" role="group" aria-label="{{ t.actions_group }}">
+              <span class="field-label" aria-hidden="true">{{ t.actions }}</span>
               <div class="line-actions-buttons">
-                <button class="secondary-button move-up-button" type="button" aria-label="Sposta il verso su" title="Sposta su">&uarr;</button>
-                <button class="secondary-button move-down-button" type="button" aria-label="Sposta il verso giù" title="Sposta giù">&darr;</button>
-                <button class="secondary-button add-line-button" type="button" aria-label="Aggiungi un verso sotto" title="Aggiungi verso sotto">+</button>
-                <button class="secondary-button delete-line-button" type="button" aria-label="Elimina il verso" title="Elimina verso">&times;</button>
+                <button class="secondary-button move-up-button" type="button" aria-label="{{ t.move_up }}" title="{{ t.move_up_short }}">&uarr;</button>
+                <button class="secondary-button move-down-button" type="button" aria-label="{{ t.move_down }}" title="{{ t.move_down_short }}">&darr;</button>
+                <button class="secondary-button add-line-button" type="button" aria-label="{{ t.add_line }}" title="{{ t.add_line_short }}">+</button>
+                <button class="secondary-button delete-line-button" type="button" aria-label="{{ t.delete_line }}" title="{{ t.delete_line_short }}">&times;</button>
               </div>
             </div>
           </div>
-          <p class="meta">Volume {{ "%.1f"|format(line.volume) }}, velocità {{ line.speed or annotation.overall_speed }}.</p>
+          <p class="meta">{{ t.meta_volume }} {{ "%.1f"|format(line.volume) }}, {{ t.meta_speed }} {{ line.speed or annotation.overall_speed }}.</p>
         </article>
         {% endfor %}
-        <button id="resynthesize-button" class="secondary-button" type="button">Rigenera da anteprima modificata</button>
+        <button id="resynthesize-button" class="secondary-button" type="button">{{ t.resynthesize }}</button>
       </section>
       <script id="annotation-json" type="application/json">{{ annotation.model_dump_json() | safe }}</script>
       {% endif %}
     </main>
     <script>
+      const T = {{ t | tojson }};
       const form = document.querySelector("#convert-form");
       const button = document.querySelector("#submit-button");
       const status = document.querySelector("#conversion-status");
@@ -329,6 +346,7 @@
       const sourceText = document.querySelector("#source_text");
       const engineSelect = document.querySelector("#tts_engine");
       const speakerSelect = document.querySelector("#tts_speaker");
+      const languageSelect = document.querySelector("#language");
       const resynthesizeButton = document.querySelector("#resynthesize-button");
       const cloneField = document.querySelector("#clone-field");
       const speakerSample = document.querySelector("#speaker_sample");
@@ -387,6 +405,7 @@
         updateVoiceOptions();
         updateCloneField();
       });
+      languageSelect?.addEventListener("change", updateVoiceOptions);
       resynthesizeButton?.addEventListener("click", resynthesizeFromPreview);
       document.addEventListener("click", (event) => {
         if (event.target.matches(".delete-line-button")) {
@@ -418,29 +437,29 @@
           resultSection.hidden = true;
         }
         button.disabled = true;
-        button.textContent = "Elaborazione...";
+        button.textContent = T.js_processing;
         status.hidden = false;
         status.classList.remove("error");
-        status.textContent = "Elaborazione avviata";
+        status.textContent = T.js_started;
         logList.hidden = false;
         logList.replaceChildren();
         startProgress();
 
         if (engineUsesCatalogVoice(engineSelect.value)) {
           if (speakerSelect.disabled || !speakerSelect.value) {
-            status.textContent = "Nessuna voce compatibile per il motore selezionato.";
+            status.textContent = T.js_no_voice;
             status.classList.add("error");
             hideProgress();
             button.disabled = false;
-            button.textContent = "Genera audiolibro";
+            button.textContent = T.submit;
             return;
           }
         } else if (engineSelect.value === "xtts" && !speakerSample?.files?.length) {
-          status.textContent = "Per XTTS carica un campione voce da clonare.";
+          status.textContent = T.js_xtts_sample;
           status.classList.add("error");
           hideProgress();
           button.disabled = false;
-          button.textContent = "Genera audiolibro";
+          button.textContent = T.submit;
           return;
         }
 
@@ -450,7 +469,7 @@
             body: new FormData(form),
           });
           if (!response.ok) {
-            throw new Error("Avvio conversione non riuscito");
+            throw new Error(T.js_start_failed);
           }
           const payload = await response.json();
           pollJob(payload.job_id);
@@ -459,7 +478,7 @@
           status.classList.add("error");
           hideProgress();
           button.disabled = false;
-          button.textContent = "Genera audiolibro";
+          button.textContent = T.submit;
         }
       });
 
@@ -471,25 +490,25 @@
           updateProgressFromMessages(job.messages);
 
           if (job.status === "completed") {
-            status.textContent = "Elaborazione completata";
+            status.textContent = T.js_completed;
             setProgress(100);
             window.location.href = job.result_url;
             return;
           }
 
           if (job.status === "failed") {
-            status.textContent = job.error || "Elaborazione non riuscita";
+            status.textContent = job.error || T.js_failed;
             status.classList.add("error");
             hideProgress();
             button.disabled = false;
             if (resynthesizeButton) {
               resynthesizeButton.disabled = false;
             }
-            button.textContent = "Genera audiolibro";
+            button.textContent = T.submit;
             return;
           }
 
-          status.textContent = latestMessage(job.messages) || "Elaborazione in corso";
+          status.textContent = latestMessage(job.messages) || T.js_in_progress;
           setTimeout(() => pollJob(jobId), 1200);
         } catch (error) {
           status.textContent = error.message;
@@ -499,7 +518,7 @@
           if (resynthesizeButton) {
             resynthesizeButton.disabled = false;
           }
-          button.textContent = "Genera audiolibro";
+          button.textContent = T.submit;
         }
       }
 
@@ -518,9 +537,10 @@
 
       function updateVoiceOptions() {
         const engine = engineSelect.value;
+        const language = languageSelect ? languageSelect.value : "it";
         let firstVisible = null;
         for (const option of speakerSelect.options) {
-          const visible = option.dataset.engine === engine;
+          const visible = option.dataset.engine === engine && option.dataset.language === language;
           option.hidden = !visible;
           option.disabled = !visible;
           if (visible && firstVisible === null) {
@@ -579,7 +599,7 @@
         resynthesizeButton.disabled = true;
         status.hidden = false;
         status.classList.remove("error");
-        status.textContent = "Rigenerazione da anteprima modificata";
+        status.textContent = T.js_resynthesizing;
         logList.hidden = false;
         logList.replaceChildren();
         startProgress();
@@ -599,7 +619,7 @@
           });
           if (!response.ok) {
             const payload = await response.json();
-            throw new Error(payload.error || "Rigenerazione non riuscita");
+            throw new Error(payload.error || T.js_resynthesize_failed);
           }
           const payload = await response.json();
           pollJob(payload.job_id);
@@ -656,7 +676,7 @@
         document.querySelectorAll(".editable-line").forEach((row, index) => {
           const label = row.querySelector("label");
           if (label) {
-            label.textContent = `Verso ${index + 1}`;
+            label.textContent = `${T.line_label} ${index + 1}`;
           }
         });
       }

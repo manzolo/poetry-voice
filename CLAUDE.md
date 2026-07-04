@@ -83,6 +83,6 @@ Note: after the LLM returns an annotation, `runner.py` **overrides** several ann
 ## Important constraints
 
 - Requires Python ≥ 3.12.
-- Voices are bound to engines: Piper voices (`it_IT-paola-medium`, `it_IT-riccardo-x_low`) only work with `engine: piper`. The UI and CLI reject mismatches via `validate_voice_for_engine`.
-- Default TTS voice/model is Italian. Selecting another language without configuring a matching voice will still synthesize with the Italian model.
+- Voices are bound to engines **and languages** (catalog: Italian + English voices for both Piper and Kokoro). The UI filters voices by engine+language and the backend rejects mismatches via `validate_voice_for_engine(engine, speaker, language, ui_lang)`. The CLI auto-picks a matching voice when `--language` is given without `--speaker` (`default_voice_for`).
+- The web UI is bilingual (it/en): strings live in `ui/i18n.py`, language via `?lang=` + cookie. Pipeline progress log messages are still Italian-only.
 - Persistent host volumes: `./outputs` (audio), `./uploads` (web uploads), `./models` (Piper/HF/torch caches), `./ollama` (LLM models).

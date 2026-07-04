@@ -49,6 +49,34 @@ PIPER_VOICES: dict[str, PiperVoice] = {
             "it/it_IT/riccardo/x_low/it_IT-riccardo-x_low.onnx.json"
         ),
     ),
+    "en_US-lessac-medium": PiperVoice(
+        key="en_US-lessac-medium",
+        label="Lessac - English (US), medium quality",
+        language="en",
+        model_path=PIPER_MODELS_DIR / "en_US-lessac-medium.onnx",
+        model_url=(
+            "https://huggingface.co/rhasspy/piper-voices/resolve/main/"
+            "en/en_US/lessac/medium/en_US-lessac-medium.onnx"
+        ),
+        config_url=(
+            "https://huggingface.co/rhasspy/piper-voices/resolve/main/"
+            "en/en_US/lessac/medium/en_US-lessac-medium.onnx.json"
+        ),
+    ),
+    "en_US-ryan-medium": PiperVoice(
+        key="en_US-ryan-medium",
+        label="Ryan - English (US), medium quality",
+        language="en",
+        model_path=PIPER_MODELS_DIR / "en_US-ryan-medium.onnx",
+        model_url=(
+            "https://huggingface.co/rhasspy/piper-voices/resolve/main/"
+            "en/en_US/ryan/medium/en_US-ryan-medium.onnx"
+        ),
+        config_url=(
+            "https://huggingface.co/rhasspy/piper-voices/resolve/main/"
+            "en/en_US/ryan/medium/en_US-ryan-medium.onnx.json"
+        ),
+    ),
 }
 
 

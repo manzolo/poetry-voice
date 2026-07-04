@@ -28,7 +28,11 @@ class KokoroTTSProvider(TTSProvider):
             if not lines:
                 return await self.fallback.synthesize(annotation, output_wav)
 
-            pipeline = KPipeline(lang_code=self.config.language[:1])
+            # Il lang_code Kokoro e la prima lettera della voce (if_sara -> "i"
+            # italiano, af_heart -> "a" inglese US): derivare da config.language
+            # funzionerebbe solo per l'italiano ("en"[:1] non e un codice valido).
+            speaker = self.config.speaker or self.config.language
+            pipeline = KPipeline(lang_code=speaker[:1])
             rate = self.config.sample_rate
             speed = _speed(self.config.speed)
 

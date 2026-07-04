@@ -12,6 +12,7 @@ from fastapi.templating import Jinja2Templates
 from poetry_voice.config import load_config
 from poetry_voice.models import PoemAnnotation
 from poetry_voice.tts.voices import available_voices, validate_voice_for_engine
+from poetry_voice.ui.i18n import LANG_COOKIE, resolve_ui_lang, translations
 from poetry_voice.ui.jobs import create_annotation_job, create_job, get_job
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -26,13 +27,26 @@ app.mount("/outputs", StaticFiles(directory=str(OUTPUT_DIR), check_dir=False), n
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 
+def _render_index(request: Request, context: dict) -> HTMLResponse:
+    ui_lang = resolve_ui_lang(request)
+    response = templates.TemplateResponse(
+        request,
+        "index.html",
+        {"voices": available_voices(), "ui_lang": ui_lang, "t": translations(ui_lang), **context},
+    )
+    # Ricorda la lingua dell'interfaccia tra una visita e l'altra.
+    response.set_cookie(LANG_COOKIE, ui_lang, max_age=60 * 60 * 24 * 365, samesite="lax")
+    return response
+
+
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request) -> HTMLResponse:
-    return templates.TemplateResponse(request, "index.html", {"voices": available_voices()})
+    return _render_index(request, {})
 
 
 @app.post("/convert")
 async def convert(
+    request: Request,
     file: UploadFile | None = File(None),
     source_text: str = Form(""),
     reading_instructions: str = Form(""),
@@ -45,7 +59,9 @@ async def convert(
     llm_model: str = Form("qwen3:8b"),
     speaker_sample: UploadFile | None = File(None),
 ) -> JSONResponse:
-    validation_error = validate_voice_for_engine(tts_engine, tts_speaker)
+    ui_lang = resolve_ui_lang(request)
+    t = translations(ui_lang)
+    validation_error = validate_voice_for_engine(tts_engine, tts_speaker, language, ui_lang)
     if validation_error:
         return JSONResponse({"error": validation_error}, status_code=400)
 
@@ -58,10 +74,7 @@ async def convert(
         with destination.open("wb") as handle:
             shutil.copyfileobj(file.file, handle)
     else:
-        return JSONResponse(
-            {"error": "Carica un file oppure usa il testo estratto modificabile."},
-            status_code=400,
-        )
+        return JSONResponse({"error": t["error_no_input"]}, status_code=400)
 
     config = load_config()
     config.tts.engine = tts_engine  # type: ignore[assignment]
@@ -98,10 +111,11 @@ async def convert(
 
 
 @app.get("/jobs/{job_id}")
-async def job_status(job_id: str) -> JSONResponse:
+async def job_status(request: Request, job_id: str) -> JSONResponse:
     job = get_job(job_id)
     if job is None:
-        return JSONResponse({"status": "missing", "messages": ["Job non trovato"]}, status_code=404)
+        message = translations(resolve_ui_lang(request))["error_job_not_found"]
+        return JSONResponse({"status": "missing", "messages": [message]}, status_code=404)
     return JSONResponse(
         {
             "status": job.status,
@@ -114,17 +128,20 @@ async def job_status(job_id: str) -> JSONResponse:
 
 
 @app.post("/synthesize-annotation")
-async def synthesize_annotation(payload: dict) -> JSONResponse:
+async def synthesize_annotation(request: Request, payload: dict) -> JSONResponse:
+    ui_lang = resolve_ui_lang(request)
+    t = translations(ui_lang)
     tts_engine = str(payload.get("tts_engine", "piper"))
     tts_speaker = str(payload.get("tts_speaker", "it_IT-paola-medium"))
-    validation_error = validate_voice_for_engine(tts_engine, tts_speaker)
+    language = str(payload.get("language", "")) or None
+    validation_error = validate_voice_for_engine(tts_engine, tts_speaker, language, ui_lang)
     if validation_error:
         return JSONResponse({"error": validation_error}, status_code=400)
 
     try:
         annotation = PoemAnnotation.model_validate(payload["annotation"])
     except Exception as exc:
-        return JSONResponse({"error": f"Annotazione non valida: {exc}"}, status_code=400)
+        return JSONResponse({"error": f"{t['error_invalid_annotation']}: {exc}"}, status_code=400)
 
     config = load_config()
     config.tts.engine = tts_engine  # type: ignore[assignment]
@@ -153,22 +170,14 @@ async def synthesize_annotation(payload: dict) -> JSONResponse:
 async def result(request: Request, job_id: str) -> HTMLResponse:
     job = get_job(job_id)
     if job is None or job.status != "completed" or job.annotation is None:
-        return templates.TemplateResponse(
-            request,
-            "index.html",
-            {
-                "error": "Risultato non disponibile o job non completato.",
-                "voices": available_voices(),
-            },
-        )
-    return templates.TemplateResponse(
+        message = translations(resolve_ui_lang(request))["error_result_missing"]
+        return _render_index(request, {"error": message})
+    return _render_index(
         request,
-        "index.html",
         {
             "annotation": job.annotation,
             "audio_url": job.audio_url,
             "source_text": job.source_text,
             "form_data": {**job.form_data, "source_text": job.source_text},
-            "voices": available_voices(),
         },
     )

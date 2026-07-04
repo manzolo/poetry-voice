@@ -1,5 +1,7 @@
 # Poetry Voice
 
+> 🇬🇧 **[English version](README.en.md)**
+
 Poetry Voice e un'applicazione open source in Python che trasforma poesie in audiolibri espressivi.
 
 L'obiettivo non e fare semplice text-to-speech. Poetry Voice analizza prima la poesia, individua ritmo, pause, emozioni ed enfasi, poi invia un piano di lettura annotato a un motore TTS configurabile. Il risultato desiderato e una lettura calda, elegante e rilassante, piu vicina a un narratore umano attento che a una voce meccanica.
@@ -134,6 +136,11 @@ scelta di provider e modello LLM, anteprima annotata modificabile (testo, pausa
 ed emozione per ogni verso, con riordino dei versi), log di avanzamento con barra
 di progresso, ascolto e download dell'audio.
 
+L'interfaccia e bilingue: italiano e inglese, con selettore in alto a destra
+(la scelta viene ricordata). La lingua dell'interfaccia e indipendente dalla
+lingua di lettura della poesia: l'elenco delle voci si filtra in automatico
+per motore e lingua di lettura selezionati.
+
 Flusso consigliato:
 
 1. Carica un file e genera il primo audiolibro.
@@ -158,6 +165,10 @@ llm:
   model: qwen3:8b
   base_url: http://localhost:11434
   temperature: 0.2
+  # Finestra di contesto Ollama: alzala se i testi lunghi vengono troncati.
+  num_ctx: 8192
+  # Testi oltre questa soglia di versi vengono analizzati a blocchi di strofe.
+  max_lines_per_chunk: 24
   language: it
   reading_tone: caldo
   reading_speed: slow
@@ -215,20 +226,27 @@ tts:
   engine: piper
 ```
 
-Le voci sono legate al motore. `Paola` e `Riccardo` sono voci Piper: la UI le
-mostra solo quando il motore selezionato e `Piper`, e il backend rifiuta
-combinazioni incompatibili invece di usare silenziosamente il fallback.
+Le voci sono legate al motore **e alla lingua**: la UI mostra solo quelle
+compatibili con motore e lingua di lettura selezionati, e il backend rifiuta
+combinazioni incompatibili invece di usare silenziosamente il fallback. Da CLI,
+`--language en` senza `--speaker` sceglie da solo una voce inglese adatta.
 
-Per voci piu naturali c'e il motore **Kokoro** (neurale) con voci italiane
-`Sara` e `Nicola`, che rispetta le pause per verso. Richiede lo stack neurale:
-usalo via Docker (consigliato) oppure in locale con Python ≤ 3.13 ed `espeak-ng`
-(i wheel di spacy/kokoro non esistono ancora per Python 3.14). Tutte le pause
-per verso sono rispettate sia con Piper sia con Kokoro.
+Per voci piu naturali c'e il motore **Kokoro** (neurale), che rispetta le pause
+per verso. Richiede lo stack neurale: usalo via Docker (consigliato) oppure in
+locale con Python ≤ 3.13 ed `espeak-ng` (i wheel di spacy/kokoro non esistono
+ancora per Python 3.14). Tutte le pause per verso sono rispettate sia con Piper
+sia con Kokoro.
 
-| Voce | Chiave | Note |
-| --- | --- | --- |
-| Paola | `it_IT-paola-medium` | qualita media, default consigliato |
-| Riccardo | `it_IT-riccardo-x_low` | molto leggero, qualita inferiore |
+| Voce | Chiave | Motore | Lingua | Note |
+| --- | --- | --- | --- | --- |
+| Paola | `it_IT-paola-medium` | piper | it | qualita media, default consigliato |
+| Riccardo | `it_IT-riccardo-x_low` | piper | it | molto leggero, qualita inferiore |
+| Lessac | `en_US-lessac-medium` | piper | en | inglese US, qualita media |
+| Ryan | `en_US-ryan-medium` | piper | en | inglese US, qualita media |
+| Sara | `if_sara` | kokoro | it | neurale |
+| Nicola | `im_nicola` | kokoro | it | neurale |
+| Heart | `af_heart` | kokoro | en | inglese US, neurale |
+| Michael | `am_michael` | kokoro | en | inglese US, neurale |
 
 Se il modello non e presente, viene scaricato automaticamente a runtime in
 `./models/piper/`. Per aggiungere altre voci Piper, registrale in

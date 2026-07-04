@@ -18,6 +18,14 @@ KOKORO_VOICES: dict[str, KokoroVoice] = {
     "im_nicola": KokoroVoice(
         key="im_nicola", label="Nicola - italiano (Kokoro, neurale)", language="it"
     ),
+    # Il prefisso della voce codifica la lingua Kokoro: i=italiano,
+    # a=inglese americano, b=inglese britannico (usato da kokoro.py).
+    "af_heart": KokoroVoice(
+        key="af_heart", label="Heart - English (US) (Kokoro, neural)", language="en"
+    ),
+    "am_michael": KokoroVoice(
+        key="am_michael", label="Michael - English (US) (Kokoro, neural)", language="en"
+    ),
 }
 
 

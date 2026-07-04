@@ -8,6 +8,16 @@ e il progetto segue il [versionamento semantico](https://semver.org/lang/it/).
 ## [Unreleased]
 
 ### Aggiunto
+- Interfaccia web bilingue italiano/inglese: selettore accessibile in alto,
+  scelta ricordata con un cookie (`?lang=it|en`), stringhe in `ui/i18n.py` con
+  test di parita' delle traduzioni. I log di avanzamento della pipeline
+  restano per ora in italiano.
+- Voci inglesi a catalogo: Lessac e Ryan (Piper, `en_US-*`), Heart e Michael
+  (Kokoro, `af_heart`/`am_michael`). Le voci sono ora legate anche alla lingua:
+  la UI filtra l'elenco per motore + lingua di lettura, il backend rifiuta gli
+  abbinamenti sbagliati e da CLI `--language en` senza `--speaker` sceglie da
+  solo una voce adatta.
+- `README.en.md`: versione inglese del README, con link incrociati.
 - Analisi LLM a blocchi di strofe per i testi lunghi (soglia configurabile con
   `llm.max_lines_per_chunk`, default 24): una passata leggera ricava titolo e
   tono globale, poi ogni blocco viene annotato con quel contesto e ricomposto
@@ -49,6 +59,9 @@ e il progetto segue il [versionamento semantico](https://semver.org/lang/it/).
 - Action della CI aggiornati a Node 24 (checkout@v7, setup-python@v6, cache@v6).
 
 ### Corretto
+- Kokoro: il `lang_code` deriva dal prefisso della voce (`if_sara` → `i`,
+  `af_heart` → `a`) invece che da `language[:1]`, che funzionava solo per
+  l'italiano.
 - Niente piu versi ripetuti o inventati negli audio lunghi: l'LLM non rigenera
   piu il testo della poesia. Riceve i versi numerati e restituisce solo
   annotazioni indicizzate (`"line": N`) che vengono riattaccate al testo del

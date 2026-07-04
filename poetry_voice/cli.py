@@ -11,7 +11,7 @@ from rich.console import Console
 from poetry_voice.config import load_config
 from poetry_voice.logging import configure_logging
 from poetry_voice.pipeline import PoetryVoicePipeline
-from poetry_voice.tts.voices import validate_voice_for_engine
+from poetry_voice.tts.voices import default_voice_for, validate_voice_for_engine
 
 app = typer.Typer(help="Trasforma poesie in audiolibri espressivi.")
 console = Console()
@@ -38,12 +38,20 @@ def _run_conversion(
         app_config.tts.speaker = speaker
     if speaker_wav:
         app_config.tts.speaker_wav = speaker_wav
-    validation_error = validate_voice_for_engine(app_config.tts.engine, app_config.tts.speaker)
-    if validation_error:
-        raise typer.BadParameter(validation_error)
     if language:
         app_config.llm.language = language
         app_config.tts.language = language
+        # Con --language senza --speaker, scegli da solo una voce adatta:
+        # basta un comando, senza dover conoscere i nomi delle voci.
+        if not speaker:
+            match = default_voice_for(app_config.tts.engine, language)
+            if match:
+                app_config.tts.speaker = match.key
+    validation_error = validate_voice_for_engine(
+        app_config.tts.engine, app_config.tts.speaker, app_config.tts.language
+    )
+    if validation_error:
+        raise typer.BadParameter(validation_error)
     if tone:
         app_config.llm.reading_tone = tone
     if output_format:
